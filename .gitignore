@@ -2,13 +2,6 @@ _site/
 .sass-cache/
 .jekyll-cache/
 .jekyll-metadata
-# hidden files
-!.editorconfig
-!.nojekyll
-!.travis.yml
-!.husky
-!.commitlintrc.json
-!.versionrc.json
 
 # bundler cache
 vendor
