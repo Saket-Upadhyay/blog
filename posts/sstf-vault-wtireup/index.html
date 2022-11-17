@@ -1,0 +1,1015 @@
+<!DOCTYPE html><html lang="en" ><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><meta name="generator" content="Jekyll v4.3.1" /><meta property="og:title" content="Samsung CTF App Reverse Eng. Writeup" /><meta name="author" content="Saket Upadhyay" /><meta property="og:locale" content="en" /><meta name="description" content="A writeup of Reverse Engineering Challenge of Samsung CTF &quot;Hacker&#39;s Playground 2020&quot; Points : 500 Solves : 15" /><meta property="og:description" content="A writeup of Reverse Engineering Challenge of Samsung CTF &quot;Hacker&#39;s Playground 2020&quot; Points : 500 Solves : 15" /><link rel="canonical" href="/blog/posts/sstf-vault-wtireup/" /><meta property="og:url" content="/blog/posts/sstf-vault-wtireup/" /><meta property="og:site_name" content="Saket’s Blog" /><meta property="og:image" content="/blog/assets/images/sctf/banner.png" /><meta property="og:type" content="article" /><meta property="article:published_time" content="2020-08-18T12:12:12+05:30" /><meta name="twitter:card" content="summary_large_image" /><meta property="twitter:image" content="/blog/assets/images/sctf/banner.png" /><meta property="twitter:title" content="Samsung CTF App Reverse Eng. Writeup" /><meta name="twitter:site" content="@saketofcyber" /><meta name="twitter:creator" content="@saketofcyber" /> <script type="application/ld+json"> {"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Saket Upadhyay","url":"https://github.com/Saket-Upadhyay/"},"dateModified":"2020-08-18T12:12:12+05:30","datePublished":"2020-08-18T12:12:12+05:30","description":"A writeup of Reverse Engineering Challenge of Samsung CTF &quot;Hacker&#39;s Playground 2020&quot; Points : 500 Solves : 15","headline":"Samsung CTF App Reverse Eng. Writeup","image":"/blog/assets/images/sctf/banner.png","mainEntityOfPage":{"@type":"WebPage","@id":"/blog/posts/sstf-vault-wtireup/"},"url":"/blog/posts/sstf-vault-wtireup/"}</script><title>Samsung CTF App Reverse Eng. Writeup | Saket's Blog</title><link rel="apple-touch-icon" sizes="180x180" href="/blog/assets/img/favicons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/blog/assets/img/favicons/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/blog/assets/img/favicons/favicon-16x16.png"><link rel="manifest" href="/blog/assets/img/favicons/site.webmanifest"><link rel="shortcut icon" href="/blog/assets/img/favicons/favicon.ico"><meta name="apple-mobile-web-app-title" content="Saket's Blog"><meta name="application-name" content="Saket's Blog"><meta name="msapplication-TileColor" content="#da532c"><meta name="msapplication-config" content="/blog/assets/img/favicons/browserconfig.xml"><meta name="theme-color" content="#ffffff"><link rel="preconnect" href="https://fonts.googleapis.com" ><link rel="dns-prefetch" href="https://fonts.googleapis.com" ><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="dns-prefetch" href="https://fonts.gstatic.com" crossorigin><link rel="preconnect" href="https://fonts.googleapis.com" ><link rel="dns-prefetch" href="https://fonts.googleapis.com" ><link rel="preconnect" href="https://cdn.jsdelivr.net" ><link rel="dns-prefetch" href="https://cdn.jsdelivr.net" ><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato&family=Source+Sans+Pro:wght@400;600;700;900&display=swap"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.11.2/css/all.min.css"><link rel="stylesheet" href="/blog/assets/css/style.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@1.0.1/dist/bootstrap-toc.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/magnific-popup@1/dist/magnific-popup.min.css"> <script src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script> <script type="text/javascript"> class ModeToggle { static get MODE_KEY() { return "mode"; } static get MODE_ATTR() { return "data-mode"; } static get DARK_MODE() { return "dark"; } static get LIGHT_MODE() { return "light"; } static get ID() { return "mode-toggle"; } constructor() { if (this.hasMode) { if (this.isDarkMode) { if (!this.isSysDarkPrefer) { this.setDark(); } } else { if (this.isSysDarkPrefer) { this.setLight(); } } } let self = this; /* always follow the system prefers */ this.sysDarkPrefers.addEventListener("change", () => { if (self.hasMode) { if (self.isDarkMode) { if (!self.isSysDarkPrefer) { self.setDark(); } } else { if (self.isSysDarkPrefer) { self.setLight(); } } self.clearMode(); } self.notify(); }); } /* constructor() */ get sysDarkPrefers() { return window.matchMedia("(prefers-color-scheme: dark)"); } get isSysDarkPrefer() { return this.sysDarkPrefers.matches; } get isDarkMode() { return this.mode === ModeToggle.DARK_MODE; } get isLightMode() { return this.mode === ModeToggle.LIGHT_MODE; } get hasMode() { return this.mode != null; } get mode() { return sessionStorage.getItem(ModeToggle.MODE_KEY); } /* get the current mode on screen */ get modeStatus() { if (this.isDarkMode || (!this.hasMode && this.isSysDarkPrefer)) { return ModeToggle.DARK_MODE; } else { return ModeToggle.LIGHT_MODE; } } setDark() { $('html').attr(ModeToggle.MODE_ATTR, ModeToggle.DARK_MODE); sessionStorage.setItem(ModeToggle.MODE_KEY, ModeToggle.DARK_MODE); } setLight() { $('html').attr(ModeToggle.MODE_ATTR, ModeToggle.LIGHT_MODE); sessionStorage.setItem(ModeToggle.MODE_KEY, ModeToggle.LIGHT_MODE); } clearMode() { $('html').removeAttr(ModeToggle.MODE_ATTR); sessionStorage.removeItem(ModeToggle.MODE_KEY); } /* Notify another plugins that the theme mode has changed */ notify() { window.postMessage({ direction: ModeToggle.ID, message: this.modeStatus }, "*"); } } /* ModeToggle */ const toggle = new ModeToggle(); function flipMode() { if (toggle.hasMode) { if (toggle.isSysDarkPrefer) { if (toggle.isLightMode) { toggle.clearMode(); } else { toggle.setLight(); } } else { if (toggle.isDarkMode) { toggle.clearMode(); } else { toggle.setDark(); } } } else { if (toggle.isSysDarkPrefer) { toggle.setLight(); } else { toggle.setDark(); } } toggle.notify(); } /* flipMode() */ </script><body data-spy="scroll" data-target="#toc" data-topbar-visible="true"><div id="sidebar" class="d-flex flex-column align-items-end"><div class="profile-wrapper text-center"><div id="avatar"> <a href="/blog/" class="mx-auto"> <img src="/blog/assets/prof.jpg" alt="avatar" onerror="this.style.display='none'"> </a></div><div class="site-title mt-3"> <a href="/blog/">Saket's Blog</a></div><div class="site-subtitle font-italic">CS Ph.D. Student @ UVa</div></div><ul class="w-100"><li class="nav-item"> <a href="/blog/" class="nav-link"> <i class="fa-fw fas fa-home ml-xl-3 mr-xl-3 unloaded"></i> <span>HOME</span> </a><li class="nav-item"> <a href="/blog/about/" class="nav-link"> <i class="fa-fw fas fa-info-circle ml-xl-3 mr-xl-3 unloaded"></i> <span>ABOUT</span> </a><li class="nav-item"> <a href="/blog/archives/" class="nav-link"> <i class="fa-fw fas fa-archive ml-xl-3 mr-xl-3 unloaded"></i> <span>ARCHIVES</span> </a><li class="nav-item"> <a href="/blog/tags/" class="nav-link"> <i class="fa-fw fas fa-tag ml-xl-3 mr-xl-3 unloaded"></i> <span>TAGS</span> </a><li class="nav-item"> <a href="/blog/categories/" class="nav-link"> <i class="fa-fw fas fa-stream ml-xl-3 mr-xl-3 unloaded"></i> <span>CATEGORIES</span> </a></ul><div class="sidebar-bottom mt-auto d-flex flex-wrap justify-content-center align-items-center"> <button class="mode-toggle btn" aria-label="Switch Mode"> <i class="fas fa-adjust"></i> </button> <span class="icon-border"></span> <a href="https://github.com/Saket-Upadhyay" aria-label="github" target="_blank" rel="noopener"> <i class="fab fa-github"></i> </a> <a href="https://twitter.com/saketofcyber" aria-label="twitter" target="_blank" rel="noopener"> <i class="fab fa-twitter"></i> </a> <a href="https://www.linkedin.com/in/saketupadhyay/" aria-label="linkedin" target="_blank" rel="noopener"> <i class="fab fa-linkedin"></i> </a></div></div><div id="topbar-wrapper"><div id="topbar" class="container d-flex align-items-center justify-content-between h-100 pl-3 pr-3 pl-md-4 pr-md-4"> <span id="breadcrumb"> <span> <a href="/blog/"> Home </a> </span> <span>Samsung CTF App Reverse Eng. Writeup</span> </span> <i id="sidebar-trigger" class="fas fa-bars fa-fw"></i><div id="topbar-title"> Post</div><i id="search-trigger" class="fas fa-search fa-fw"></i> <span id="search-wrapper" class="align-items-center"> <i class="fas fa-search fa-fw"></i> <input class="form-control" id="search-input" type="search" aria-label="search" autocomplete="off" placeholder="Search..."> </span> <span id="search-cancel" >Cancel</span></div></div><div id="main-wrapper" class="d-flex justify-content-center"><div id="main" class="container pl-xl-4 pr-xl-4"><div class="row"><div id="core-wrapper" class="col-12 col-lg-11 col-xl-9 pr-xl-4"><div class="post pl-1 pr-1 pl-md-2 pr-md-2"><h1 data-toc-skip>Samsung CTF App Reverse Eng. Writeup</h1><div class="post-meta text-muted"> <span> Posted <em class="" data-ts="1597732932" data-df="ll" data-toggle="tooltip" data-placement="bottom"> Aug 18, 2020 </em> </span><div class="d-flex justify-content-between"> <span> By <em> <a href="https://github.com/Saket-Upadhyay/">Saket Upadhyay</a> </em> </span><div> <span class="readtime" data-toggle="tooltip" data-placement="bottom" title="4026 words"> <em>22 min</em> read</span></div></div></div><div class="post-content"><div class="message"> A writeup of Reverse Engineering Challenge of Samsung CTF "Hacker's Playground 2020" <br /> Points : 500 <br /> Solves : 15</div><p>I took part in Samsung’s CTF event and tried to do some reverse engineering challenges, I was able to solve one but the sad part is i got the flag 1 min. after timeout so the points were not added :(</p><p>Anyways this post is about my approach to the solution and the things learned from the challenge, so let’s get into that.</p><h3 id="what-we-get-as-a-question"><span class="mr-2">What we get as a question.</span><a href="#what-we-get-as-a-question" class="anchor text-muted"><i class="fas fa-hashtag"></i></a></h3><p>A file named <code class="language-plaintext highlighter-rouge">Vault101.0.1-release.apk</code> and a banner saying <code class="language-plaintext highlighter-rouge">Can you get the password?</code></p><h4 id="brief"><span class="mr-2">Brief</span><a href="#brief" class="anchor text-muted"><i class="fas fa-hashtag"></i></a></h4><p>The main goal of this challenge is <code class="language-plaintext highlighter-rouge">Security in obscurity is not enough</code> and we will get to know this as this application is heavily obfuscated and encrypted. But the weakness being once you understand the working and decode the obfuscation the data and the key is hardcoded and are not being obtained by some server or Keystore.</p><p>That being said let’s get into the analysis. My approach in this is majorly Static Analysis and we will be using some custom scripts to recreate encryption algorithms. So this is gonna be long and detailed, I also wrote a smaller and compact version on Medium for all the people who don’t have enough time in life. <a href="https://medium.com/@saketupadhyay/vault-101-samsung-ctf-android-reverse-engineering-challenge-write-up-d5a2b16a9212">READ IT HERE IF YOU ARE ONE OF THEM</a></p><h3 id="decompilation-and-initial-analysis"><span class="mr-2">Decompilation and Initial Analysis</span><a href="#decompilation-and-initial-analysis" class="anchor text-muted"><i class="fas fa-hashtag"></i></a></h3><p><img data-src="/blog/assets/images/sctf/ldt.jpg" alt="" data-proofer-ignore> We can decompile the application via anything we feel comfortable with, I chose <code class="language-plaintext highlighter-rouge">JADX</code> as this gives reasonable java code for the android application with the usable directory structure.</p><p>After decompilation, the first step is pretty usual for everyone I think and that is <em>finding the Main.java</em> file as this is usually responsible for initial code of the application <em>(and complication</em></p><p>So after decompilation we got the following structure and it’s generally easy to find the <code class="language-plaintext highlighter-rouge">Main.java</code> at <code class="language-plaintext highlighter-rouge">./source/com/vendorname/.../Main.java</code> and that works here too as we are greeted with the files below : We found ours at <code class="language-plaintext highlighter-rouge">sources/com/sctf2020/vault101/</code></p><p><img data-src="/blog/assets/images/sctf/mainfile.png" alt="" data-proofer-ignore></p><p>And here is <code class="language-plaintext highlighter-rouge">Main.java</code> :</p><div class="language-java highlighter-rouge"><div class="code-header"> <span data-label-text="Java"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+</pre><td class="rouge-code"><pre><span class="kn">package</span> <span class="nn">com.sctf2020.vault101</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">a.b.k.e</span><span class="o">;</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">MainActivity</span> <span class="kd">extends</span> <span class="n">e</span> <span class="kd">implements</span> <span class="nc">OnClickListener</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="nc">EditText</span> <span class="n">p</span><span class="o">;</span>
+    <span class="kd">public</span> <span class="nc">Button</span> <span class="n">q</span><span class="o">;</span>
+    <span class="kd">public</span> <span class="nc">AnimatedVectorDrawable</span> <span class="n">r</span><span class="o">;</span>
+    <span class="kd">public</span> <span class="kd">volatile</span> <span class="n">b</span><span class="o">.</span><span class="na">c</span><span class="o">.</span><span class="na">a</span><span class="o">.</span><span class="na">b</span> <span class="n">s</span><span class="o">;</span>
+    <span class="kd">public</span> <span class="nc">ServiceConnection</span> <span class="n">t</span> <span class="o">=</span> <span class="k">new</span> <span class="n">a</span><span class="o">();</span>
+    <span class="kd">public</span> <span class="kd">class</span> <span class="nc">a</span> <span class="kd">implements</span> <span class="nc">ServiceConnection</span> <span class="o">{</span>
+        <span class="kd">public</span> <span class="nf">a</span><span class="o">()</span> <span class="o">{}</span>
+        <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onServiceConnected</span><span class="o">(</span><span class="nc">ComponentName</span> <span class="n">componentName</span><span class="o">,</span> <span class="nc">IBinder</span> <span class="n">iBinder</span><span class="o">)</span> <span class="o">{</span>
+            <span class="nc">MainActivity</span><span class="o">.</span><span class="na">this</span><span class="o">.</span><span class="na">s</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="na">c</span><span class="o">.</span><span class="na">a</span><span class="o">.</span><span class="na">b</span><span class="o">.</span><span class="na">a</span><span class="o">.</span><span class="na">b</span><span class="o">(</span><span class="n">iBinder</span><span class="o">);</span>
+            <span class="nc">MainActivity</span> <span class="n">mainActivity</span> <span class="o">=</span> <span class="nc">MainActivity</span><span class="o">.</span><span class="na">this</span><span class="o">;</span>
+            <span class="n">mainActivity</span><span class="o">.</span><span class="na">q</span><span class="o">.</span><span class="na">setOnClickListener</span><span class="o">(</span><span class="n">mainActivity</span><span class="o">);</span>
+        <span class="o">}</span>
+        <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onServiceDisconnected</span><span class="o">(</span><span class="nc">ComponentName</span> <span class="n">componentName</span><span class="o">)</span> <span class="o">{</span>
+            <span class="nc">MainActivity</span><span class="o">.</span><span class="na">this</span><span class="o">.</span><span class="na">s</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+            <span class="nc">MainActivity</span><span class="o">.</span><span class="na">this</span><span class="o">.</span><span class="na">q</span><span class="o">.</span><span class="na">setOnClickListener</span><span class="o">(</span><span class="kc">null</span><span class="o">);}}</span>
+    <span class="kd">public</span> <span class="kd">class</span> <span class="nc">b</span> <span class="kd">implements</span> <span class="nc">TextWatcher</span> <span class="o">{</span>
+        <span class="kd">public</span> <span class="nf">b</span><span class="o">()</span> <span class="o">{}</span>
+        <span class="kd">public</span> <span class="kt">void</span> <span class="nf">afterTextChanged</span><span class="o">(</span><span class="nc">Editable</span> <span class="n">editable</span><span class="o">)</span> <span class="o">{</span>
+            <span class="nc">MainActivity</span><span class="o">.</span><span class="na">this</span><span class="o">.</span><span class="na">q</span><span class="o">.</span><span class="na">setEnabled</span><span class="o">(</span><span class="n">editable</span><span class="o">.</span><span class="na">length</span><span class="o">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">);</span>
+        <span class="o">}</span>
+        <span class="kd">public</span> <span class="kt">void</span> <span class="nf">beforeTextChanged</span><span class="o">(</span><span class="nc">CharSequence</span> <span class="n">charSequence</span><span class="o">,</span> <span class="kt">int</span> <span class="n">i</span><span class="o">,</span> <span class="kt">int</span> <span class="n">i2</span><span class="o">,</span> <span class="kt">int</span> <span class="n">i3</span><span class="o">)</span> <span class="o">{}</span>
+        <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onTextChanged</span><span class="o">(</span><span class="nc">CharSequence</span> <span class="n">charSequence</span><span class="o">,</span> <span class="kt">int</span> <span class="n">i</span><span class="o">,</span> <span class="kt">int</span> <span class="n">i2</span><span class="o">,</span> <span class="kt">int</span> <span class="n">i3</span><span class="o">)</span> <span class="o">{}</span>
+<span class="o">}</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onClick</span><span class="o">(</span><span class="nc">View</span> <span class="n">view</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="kt">boolean</span> <span class="n">a2</span> <span class="o">=</span> <span class="k">this</span><span class="o">.</span><span class="na">s</span><span class="o">.</span><span class="na">a</span><span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">p</span><span class="o">.</span><span class="na">getText</span><span class="o">().</span><span class="na">toString</span><span class="o">());</span>
+            <span class="nc">Toast</span> <span class="n">toast</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">Toast</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+            <span class="n">toast</span><span class="o">.</span><span class="na">setView</span><span class="o">(</span><span class="n">getLayoutInflater</span><span class="o">().</span><span class="na">inflate</span><span class="o">(</span><span class="n">a2</span> <span class="o">?</span> <span class="no">R</span><span class="o">.</span><span class="na">layout</span><span class="o">.</span><span class="na">toast_success_layout</span> <span class="o">:</span> <span class="no">R</span><span class="o">.</span><span class="na">layout</span><span class="o">.</span><span class="na">toast_fail_layout</span><span class="o">,</span> <span class="o">(</span><span class="nc">ViewGroup</span><span class="o">)</span> <span class="n">findViewById</span><span class="o">(</span><span class="no">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">custom_toast_container</span><span class="o">)));</span>
+            <span class="n">toast</span><span class="o">.</span><span class="na">setGravity</span><span class="o">(</span><span class="mi">17</span><span class="o">,</span> <span class="mi">0</span><span class="o">,</span> <span class="mi">0</span><span class="o">);</span>
+            <span class="n">toast</span><span class="o">.</span><span class="na">setDuration</span><span class="o">(</span><span class="mi">1</span><span class="o">);</span>
+            <span class="n">toast</span><span class="o">.</span><span class="na">show</span><span class="o">();</span>
+            <span class="k">if</span> <span class="o">(!</span><span class="n">a2</span><span class="o">)</span> <span class="o">{</span><span class="k">this</span><span class="o">.</span><span class="na">p</span><span class="o">.</span><span class="na">getText</span><span class="o">().</span><span class="na">clear</span><span class="o">();}</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">RemoteException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span><span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();}</span>
+    <span class="o">}</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onCreate</span><span class="o">(</span><span class="nc">Bundle</span> <span class="n">bundle</span><span class="o">)</span> <span class="o">{</span>
+        <span class="kd">super</span><span class="o">.</span><span class="na">onCreate</span><span class="o">(</span><span class="n">bundle</span><span class="o">);</span>
+        <span class="n">setContentView</span><span class="o">((</span><span class="kt">int</span><span class="o">)</span> <span class="no">R</span><span class="o">.</span><span class="na">layout</span><span class="o">.</span><span class="na">activity_main</span><span class="o">);</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">q</span> <span class="o">=</span> <span class="o">(</span><span class="nc">Button</span><span class="o">)</span> <span class="n">findViewById</span><span class="o">(</span><span class="no">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">button</span><span class="o">);</span>
+        <span class="nc">EditText</span> <span class="n">editText</span> <span class="o">=</span> <span class="o">(</span><span class="nc">EditText</span><span class="o">)</span> <span class="n">findViewById</span><span class="o">(</span><span class="no">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">editText</span><span class="o">);</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">p</span> <span class="o">=</span> <span class="n">editText</span><span class="o">;</span>
+        <span class="n">editText</span><span class="o">.</span><span class="na">addTextChangedListener</span><span class="o">(</span><span class="k">new</span> <span class="n">b</span><span class="o">());</span>
+        <span class="nc">AnimatedVectorDrawable</span> <span class="n">animatedVectorDrawable</span> <span class="o">=</span> <span class="o">(</span><span class="nc">AnimatedVectorDrawable</span><span class="o">)</span> <span class="o">((</span><span class="nc">ImageView</span><span class="o">)</span> <span class="n">findViewById</span><span class="o">(</span><span class="no">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">imageView</span><span class="o">)).</span><span class="na">getDrawable</span><span class="o">();</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">r</span> <span class="o">=</span> <span class="n">animatedVectorDrawable</span><span class="o">;</span>
+        <span class="n">animatedVectorDrawable</span><span class="o">.</span><span class="na">start</span><span class="o">();</span>
+        <span class="n">bindService</span><span class="o">(</span><span class="k">new</span> <span class="nc">Intent</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="nc">VaultService</span><span class="o">.</span><span class="na">class</span><span class="o">),</span> <span class="k">this</span><span class="o">.</span><span class="na">t</span><span class="o">,</span> <span class="mi">1</span><span class="o">);</span>
+    <span class="o">}</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onDestroy</span><span class="o">()</span> <span class="o">{</span>
+        <span class="kd">super</span><span class="o">.</span><span class="na">onDestroy</span><span class="o">();</span>
+        <span class="n">unbindService</span><span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">t</span><span class="o">);</span>
+    <span class="o">}</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onResume</span><span class="o">()</span> <span class="o">{</span>
+        <span class="kd">super</span><span class="o">.</span><span class="na">onResume</span><span class="o">();</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">r</span><span class="o">.</span><span class="na">start</span><span class="o">();}}</span>
+</pre></table></code></div></div><p><em>I have Removed the import part to save space</em></p><p>After a brief walkthrough over code, we can see how we get our <code class="language-plaintext highlighter-rouge">GOOD PASSWORD</code> or <code class="language-plaintext highlighter-rouge">BAD PASSWORD</code> messages. Check out this part :</p><div class="language-java highlighter-rouge"><div class="code-header"> <span data-label-text="Java"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+</pre><td class="rouge-code"><pre> <span class="k">try</span> <span class="o">{</span>
+            <span class="kt">boolean</span> <span class="n">a2</span> <span class="o">=</span> <span class="k">this</span><span class="o">.</span><span class="na">s</span><span class="o">.</span><span class="na">a</span><span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">p</span><span class="o">.</span><span class="na">getText</span><span class="o">().</span><span class="na">toString</span><span class="o">());</span>
+            <span class="nc">Toast</span> <span class="n">toast</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">Toast</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+            <span class="n">toast</span><span class="o">.</span><span class="na">setView</span><span class="o">(</span><span class="n">getLayoutInflater</span><span class="o">().</span><span class="na">inflate</span><span class="o">(</span><span class="n">a2</span> <span class="o">?</span> <span class="no">R</span><span class="o">.</span><span class="na">layout</span><span class="o">.</span><span class="na">toast_success_layout</span> <span class="o">:</span> <span class="no">R</span><span class="o">.</span><span class="na">layout</span><span class="o">.</span><span class="na">toast_fail_layout</span><span class="o">,</span> <span class="o">(</span><span class="nc">ViewGroup</span><span class="o">)</span> <span class="n">findViewById</span><span class="o">(</span><span class="no">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">custom_toast_container</span><span class="o">)));</span>
+            <span class="n">toast</span><span class="o">.</span><span class="na">setGravity</span><span class="o">(</span><span class="mi">17</span><span class="o">,</span> <span class="mi">0</span><span class="o">,</span> <span class="mi">0</span><span class="o">);</span>
+            <span class="n">toast</span><span class="o">.</span><span class="na">setDuration</span><span class="o">(</span><span class="mi">1</span><span class="o">);</span>
+            <span class="n">toast</span><span class="o">.</span><span class="na">show</span><span class="o">();</span>
+            <span class="k">if</span> <span class="o">(!</span><span class="n">a2</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">this</span><span class="o">.</span><span class="na">p</span><span class="o">.</span><span class="na">getText</span><span class="o">().</span><span class="na">clear</span><span class="o">();</span>
+            <span class="o">}</span>
+
+</pre></table></code></div></div><p>So when we get <code class="language-plaintext highlighter-rouge">true</code> from <code class="language-plaintext highlighter-rouge">boolean function this.s.a()</code> we say password is accepted.</p><p>Also note that you won’t find any <code class="language-plaintext highlighter-rouge">s\a.java</code> in the folder structure because see this :</p><div class="language-java highlighter-rouge"><div class="code-header"> <span data-label-text="Java"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre><td class="rouge-code"><pre><span class="kd">public</span> <span class="kd">volatile</span> <span class="n">b</span><span class="o">.</span><span class="na">c</span><span class="o">.</span><span class="na">a</span><span class="o">.</span><span class="na">b</span> <span class="n">s</span><span class="o">;</span>
+</pre></table></code></div></div><p>It’s actually <code class="language-plaintext highlighter-rouge">b.c.a.b.a()</code> .</p><p>So let’s go analyze all these crazy functions…</p><h3 id="deep-analysis-and-finding-obfuscation"><span class="mr-2">Deep Analysis and Finding Obfuscation</span><a href="#deep-analysis-and-finding-obfuscation" class="anchor text-muted"><i class="fas fa-hashtag"></i></a></h3><p><img data-src="/blog/assets/images/sctf/deep.jpg" alt="" data-proofer-ignore></p><p>Let’s analyze all the functions, the plan is simple we will go branch by branch, i.e. :</p><blockquote><p>first analysis function X and if it calls Y we will go and check Y and come back when it returns.</p></blockquote><p>So back to our class <code class="language-plaintext highlighter-rouge">b.c.a.b</code>’s function <code class="language-plaintext highlighter-rouge">a()</code> :</p><p>This is out <code class="language-plaintext highlighter-rouge">b.java</code></p><div class="language-java highlighter-rouge"><div class="code-header"> <span data-label-text="Java"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+</pre><td class="rouge-code"><pre><span class="kn">package</span> <span class="nn">b.c.a</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">android.os.Binder</span><span class="o">;</span><span class="kn">import</span> <span class="nn">android.os.IBinder</span><span class="o">;</span><span class="kn">import</span> <span class="nn">android.os.IInterface</span><span class="o">;</span><span class="kn">import</span> <span class="nn">android.os.Parcel</span><span class="o">;</span>
+<span class="kd">public</span> <span class="kd">interface</span> <span class="nc">b</span> <span class="kd">extends</span> <span class="nc">IInterface</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kd">abstract</span> <span class="kd">class</span> <span class="nc">a</span> <span class="kd">extends</span> <span class="nc">Binder</span> <span class="kd">implements</span> <span class="n">b</span> <span class="o">{</span>
+        <span class="kd">public</span> <span class="kd">static</span> <span class="kd">class</span> <span class="nc">C0039a</span> <span class="kd">implements</span> <span class="n">b</span> <span class="o">{</span>
+            <span class="kd">public</span> <span class="nc">IBinder</span> <span class="n">f822a</span><span class="o">;</span>
+            <span class="kd">public</span> <span class="nf">C0039a</span><span class="o">(</span><span class="nc">IBinder</span> <span class="n">iBinder</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">this</span><span class="o">.</span><span class="na">f822a</span> <span class="o">=</span> <span class="n">iBinder</span><span class="o">;</span>
+            <span class="o">}</span>
+            <span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">a</span><span class="o">(</span><span class="nc">String</span> <span class="n">str</span><span class="o">)</span> <span class="o">{</span>
+                <span class="nc">Parcel</span> <span class="n">obtain</span> <span class="o">=</span> <span class="nc">Parcel</span><span class="o">.</span><span class="na">obtain</span><span class="o">();</span>
+                <span class="nc">Parcel</span> <span class="n">obtain2</span> <span class="o">=</span> <span class="nc">Parcel</span><span class="o">.</span><span class="na">obtain</span><span class="o">();</span>
+                <span class="k">try</span> <span class="o">{</span>
+                    <span class="n">obtain</span><span class="o">.</span><span class="na">writeInterfaceToken</span><span class="o">(</span><span class="s">"com.sctf2020.vault101.IVault"</span><span class="o">);</span>
+                    <span class="n">obtain</span><span class="o">.</span><span class="na">writeString</span><span class="o">(</span><span class="n">str</span><span class="o">);</span>
+                    <span class="kt">boolean</span> <span class="n">z</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+                    <span class="k">this</span><span class="o">.</span><span class="na">f822a</span><span class="o">.</span><span class="na">transact</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="n">obtain</span><span class="o">,</span> <span class="n">obtain2</span><span class="o">,</span> <span class="mi">0</span><span class="o">);</span>
+                    <span class="n">obtain2</span><span class="o">.</span><span class="na">readException</span><span class="o">();</span>
+                    <span class="k">if</span> <span class="o">(</span><span class="n">obtain2</span><span class="o">.</span><span class="na">readInt</span><span class="o">()</span> <span class="o">!=</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span><span class="n">z</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;}</span>
+                    <span class="k">return</span> <span class="n">z</span><span class="o">;</span>
+                <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+                    <span class="n">obtain2</span><span class="o">.</span><span class="na">recycle</span><span class="o">();</span>
+                    <span class="n">obtain</span><span class="o">.</span><span class="na">recycle</span><span class="o">();}}</span>
+            <span class="kd">public</span> <span class="nc">IBinder</span> <span class="nf">asBinder</span><span class="o">()</span> <span class="o">{</span><span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="na">f822a</span><span class="o">;}}</span>
+        <span class="kd">public</span> <span class="nf">a</span><span class="o">()</span> <span class="o">{</span><span class="n">attachInterface</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="s">"com.sctf2020.vault101.IVault"</span><span class="o">);}</span>
+        <span class="kd">public</span> <span class="kd">static</span> <span class="n">b</span> <span class="nf">b</span><span class="o">(</span><span class="nc">IBinder</span> <span class="n">iBinder</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">iBinder</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span><span class="k">return</span> <span class="kc">null</span><span class="o">;}</span>
+            <span class="nc">IInterface</span> <span class="n">queryLocalInterface</span> <span class="o">=</span> <span class="n">iBinder</span><span class="o">.</span><span class="na">queryLocalInterface</span><span class="o">(</span><span class="s">"com.sctf2020.vault101.IVault"</span><span class="o">);</span>
+            <span class="k">return</span> <span class="o">(</span><span class="n">queryLocalInterface</span> <span class="o">==</span> <span class="kc">null</span> <span class="o">||</span> <span class="o">!(</span><span class="n">queryLocalInterface</span> <span class="k">instanceof</span> <span class="n">b</span><span class="o">))</span> <span class="o">?</span> <span class="k">new</span> <span class="nc">C0039a</span><span class="o">(</span><span class="n">iBinder</span><span class="o">)</span> <span class="o">:</span> <span class="o">(</span><span class="n">b</span><span class="o">)</span> <span class="n">queryLocalInterface</span><span class="o">;</span>
+      <span class="o">}</span>
+        <span class="kd">public</span> <span class="nc">IBinder</span> <span class="nf">asBinder</span><span class="o">()</span> <span class="o">{</span><span class="k">return</span> <span class="k">this</span><span class="o">;}</span>
+        <span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">inTransact</span><span class="o">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">,</span> <span class="nc">Parcel</span> <span class="n">parcel</span><span class="o">,</span> <span class="nc">Parcel</span> <span class="n">parcel2</span><span class="o">,</span> <span class="kt">int</span> <span class="n">i2</span><span class="o">)</span> <span class="o">{</span>
+            <span class="nc">String</span> <span class="n">str</span> <span class="o">=</span> <span class="s">"com.sctf2020.vault101.IVault"</span><span class="o">;</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">i</span> <span class="o">==</span> <span class="mi">1</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">parcel</span><span class="o">.</span><span class="na">enforceInterface</span><span class="o">(</span><span class="n">str</span><span class="o">);</span>
+                <span class="kt">boolean</span> <span class="n">a2</span> <span class="o">=</span> <span class="n">a</span><span class="o">(</span><span class="n">parcel</span><span class="o">.</span><span class="na">readString</span><span class="o">());</span>
+                <span class="n">parcel2</span><span class="o">.</span><span class="na">writeNoException</span><span class="o">();</span>
+                <span class="n">parcel2</span><span class="o">.</span><span class="na">writeInt</span><span class="o">(</span><span class="n">a2</span> <span class="o">?</span> <span class="mi">1</span> <span class="o">:</span> <span class="mi">0</span><span class="o">);</span>
+                <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">i</span> <span class="o">!=</span> <span class="mi">1598968902</span><span class="o">){</span><span class="k">return</span> <span class="kd">super</span><span class="o">.</span><span class="na">onTransact</span><span class="o">(</span><span class="n">i</span><span class="o">,</span> <span class="n">parcel</span><span class="o">,</span> <span class="n">parcel2</span><span class="o">,</span> <span class="n">i2</span><span class="o">);}</span> <span class="k">else</span> <span class="o">{</span>
+                <span class="n">parcel2</span><span class="o">.</span><span class="na">writeString</span><span class="o">(</span><span class="n">str</span><span class="o">);</span><span class="k">return</span> <span class="kc">true</span><span class="o">;}}}</span>
+ <span class="kt">boolean</span> <span class="nf">a</span><span class="o">(</span><span class="nc">String</span> <span class="n">str</span><span class="o">);</span>
+<span class="o">}</span>
+</pre></table></code></div></div><p>so we called <code class="language-plaintext highlighter-rouge">a(String _ourinput_)</code> so this implimentation of <code class="language-plaintext highlighter-rouge">a()</code> in class <code class="language-plaintext highlighter-rouge">b.java</code> will be called :</p><div class="language-java highlighter-rouge"><div class="code-header"> <span data-label-text="Java"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+</pre><td class="rouge-code"><pre><span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">a</span><span class="o">(</span><span class="nc">String</span> <span class="n">str</span><span class="o">)</span> <span class="o">{</span>
+                <span class="nc">Parcel</span> <span class="n">obtain</span> <span class="o">=</span> <span class="nc">Parcel</span><span class="o">.</span><span class="na">obtain</span><span class="o">();</span>
+                <span class="nc">Parcel</span> <span class="n">obtain2</span> <span class="o">=</span> <span class="nc">Parcel</span><span class="o">.</span><span class="na">obtain</span><span class="o">();</span>
+                <span class="k">try</span> <span class="o">{</span>
+                    <span class="n">obtain</span><span class="o">.</span><span class="na">writeInterfaceToken</span><span class="o">(</span><span class="s">"com.sctf2020.vault101.IVault"</span><span class="o">);</span>
+                    <span class="n">obtain</span><span class="o">.</span><span class="na">writeString</span><span class="o">(</span><span class="n">str</span><span class="o">);</span>
+                    <span class="kt">boolean</span> <span class="n">z</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+                    <span class="k">this</span><span class="o">.</span><span class="na">f822a</span><span class="o">.</span><span class="na">transact</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="n">obtain</span><span class="o">,</span> <span class="n">obtain2</span><span class="o">,</span> <span class="mi">0</span><span class="o">);</span>
+                    <span class="n">obtain2</span><span class="o">.</span><span class="na">readException</span><span class="o">();</span>
+                    <span class="k">if</span> <span class="o">(</span><span class="n">obtain2</span><span class="o">.</span><span class="na">readInt</span><span class="o">()</span> <span class="o">!=</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+				 <span class="n">z</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+                    <span class="o">}</span>
+                    <span class="k">return</span> <span class="n">z</span><span class="o">;</span>
+                <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+                    <span class="n">obtain2</span><span class="o">.</span><span class="na">recycle</span><span class="o">();</span>
+                    <span class="n">obtain</span><span class="o">.</span><span class="na">recycle</span><span class="o">();}</span>
+            <span class="kd">public</span> <span class="nc">IBinder</span> <span class="nf">asBinder</span><span class="o">()</span> <span class="o">{</span><span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="na">f822a</span><span class="o">;}}</span>
+</pre></table></code></div></div><p>Which is just using <code class="language-plaintext highlighter-rouge">Parcel</code> to obtain the string and the app token to pass the data via <code class="language-plaintext highlighter-rouge">transact</code></p><p>So let’s observe <code class="language-plaintext highlighter-rouge">onTransact</code></p><div class="language-java highlighter-rouge"><div class="code-header"> <span data-label-text="Java"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre><td class="rouge-code"><pre>        <span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">onTransact</span><span class="o">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">,</span> <span class="nc">Parcel</span> <span class="n">parcel</span><span class="o">,</span> <span class="nc">Parcel</span> <span class="n">parcel2</span><span class="o">,</span> <span class="kt">int</span> <span class="n">i2</span><span class="o">)</span> <span class="o">{</span>
+            <span class="nc">String</span> <span class="n">str</span> <span class="o">=</span> <span class="s">"com.sctf2020.vault101.IVault"</span><span class="o">;</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">i</span> <span class="o">==</span> <span class="mi">1</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">parcel</span><span class="o">.</span><span class="na">enforceInterface</span><span class="o">(</span><span class="n">str</span><span class="o">);</span>
+                <span class="kt">boolean</span> <span class="n">a2</span> <span class="o">=</span> <span class="n">a</span><span class="o">(</span><span class="n">parcel</span><span class="o">.</span><span class="na">readString</span><span class="o">());</span>
+                <span class="n">parcel2</span><span class="o">.</span><span class="na">writeNoException</span><span class="o">();</span>
+                <span class="n">parcel2</span><span class="o">.</span><span class="na">writeInt</span><span class="o">(</span><span class="n">a2</span> <span class="o">?</span> <span class="mi">1</span> <span class="o">:</span> <span class="mi">0</span><span class="o">);</span>
+                <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+
+<span class="o">...</span>
+</pre></table></code></div></div><p>Here we also see if we pass <code class="language-plaintext highlighter-rouge">int 1</code> and then our 2 parcels, it will call</p><div class="language-java highlighter-rouge"><div class="code-header"> <span data-label-text="Java"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre><td class="rouge-code"><pre> <span class="kt">boolean</span> <span class="n">a2</span> <span class="o">=</span> <span class="n">a</span><span class="o">(</span><span class="n">parcel</span><span class="o">.</span><span class="na">readString</span><span class="o">());</span>
+</pre></table></code></div></div><p>Now this is <code class="language-plaintext highlighter-rouge">function a()</code> of extended <code class="language-plaintext highlighter-rouge">a()</code> in <code class="language-plaintext highlighter-rouge">VaultService.java</code> so let’s check that out.</p><h5 id="vaultservicejava--encrypted-class-extends-bcaba"><span class="mr-2">VaultService.java : Encrypted Class Extends b.c.a.b.a()</span><a href="#vaultservicejava--encrypted-class-extends-bcaba" class="anchor text-muted"><i class="fas fa-hashtag"></i></a></h5><p><code class="language-plaintext highlighter-rouge">VaultService.java</code> extends <code class="language-plaintext highlighter-rouge">a(String str)</code> which is the new functionality invoked in previous :</p><div class="language-java highlighter-rouge"><div class="code-header"> <span data-label-text="Java"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre><td class="rouge-code"><pre>  <span class="kt">boolean</span> <span class="n">a2</span> <span class="o">=</span> <span class="n">a</span><span class="o">(</span><span class="n">parcel</span><span class="o">.</span><span class="na">readString</span><span class="o">());</span>
+</pre></table></code></div></div><p>So let’s have a look at <code class="language-plaintext highlighter-rouge">VaultService.java</code></p><div class="language-java highlighter-rouge"><div class="code-header"> <span data-label-text="Java"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+</pre><td class="rouge-code"><pre><span class="kn">package</span> <span class="nn">com.sctf2020.vault101</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">android.app.Service</span><span class="o">;</span><span class="kn">import</span> <span class="nn">android.content.Intent</span><span class="o">;</span><span class="kn">import</span> <span class="nn">android.os.IBinder</span><span class="o">;</span><span class="kn">import</span> <span class="nn">java.lang.reflect.Array</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">b.c.a.c</span><span class="o">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">VaultService</span> <span class="kd">extends</span> <span class="nc">Service</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="nc">IBinder</span> <span class="n">f873b</span> <span class="o">=</span> <span class="k">new</span> <span class="n">b</span><span class="o">(</span><span class="kc">null</span><span class="o">);</span>
+    <span class="kd">public</span> <span class="kd">class</span> <span class="nc">b</span> <span class="kd">extends</span> <span class="n">b</span><span class="o">.</span><span class="na">c</span><span class="o">.</span><span class="na">a</span><span class="o">.</span><span class="na">b</span><span class="o">.</span><span class="na">a</span> <span class="o">{</span>
+        <span class="kd">public</span> <span class="kt">int</span> <span class="n">f874a</span><span class="o">;</span>
+        <span class="kd">public</span> <span class="nf">b</span><span class="o">(</span><span class="n">a</span> <span class="n">aVar</span><span class="o">)</span> <span class="o">{}</span>
+        <span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">a</span><span class="o">(</span><span class="nc">String</span> <span class="n">str</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">try</span> <span class="o">{</span>
+                <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="k">this</span><span class="o">.</span><span class="na">f874a</span> <span class="o">+</span> <span class="mi">1</span><span class="o">;</span>
+                <span class="k">this</span><span class="o">.</span><span class="na">f874a</span> <span class="o">=</span> <span class="n">i</span><span class="o">;</span>
+                <span class="k">if</span> <span class="o">(</span><span class="n">i</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">";È\u0003p¯4Å¶orÂ\"Ý\u0010|"</span><span class="o">,</span> <span class="o">-</span><span class="mi">500953648</span><span class="o">)).</span><span class="na">getMethod</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"qó%"</span><span class="o">,</span> <span class="mi">991422357</span><span class="o">),</span> <span class="k">new</span> <span class="nc">Class</span><span class="o">[]{(</span><span class="nc">Class</span><span class="o">)</span> <span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"~jxe\u0005reíY:Bè`niaY"</span><span class="o">,</span> <span class="mi">1069257791</span><span class="o">)).</span><span class="na">getDeclaredField</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"\u0001ò¬\u0010"</span><span class="o">,</span> <span class="mi">1659367412</span><span class="o">)).</span><span class="na">get</span><span class="o">(</span><span class="kc">null</span><span class="o">)}).</span><span class="na">invoke</span><span class="o">(</span><span class="kc">null</span><span class="o">,</span> <span class="k">new</span> <span class="nc">Object</span><span class="o">[]{</span><span class="nc">Integer</span><span class="o">.</span><span class="na">valueOf</span><span class="o">(</span><span class="mi">0</span><span class="o">)});</span>
+                    <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+                <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">str</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+                <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+                    <span class="kt">byte</span><span class="o">[]</span> <span class="n">b2</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="na">c</span><span class="o">.</span><span class="na">a</span><span class="o">.</span><span class="na">a</span><span class="o">.</span><span class="na">b</span><span class="o">((</span><span class="kt">byte</span><span class="o">[])</span> <span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">".Â®$\u000fß1Ç\u0003?Ú6Ê¶\""</span><span class="o">,</span> <span class="mi">1451800421</span><span class="o">)).</span><span class="na">getMethod</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"7Ì£\u0002rØ0X"</span><span class="o">,</span> <span class="o">-</span><span class="mi">552283301</span><span class="o">),</span> <span class="k">new</span> <span class="nc">Class</span><span class="o">[</span><span class="mi">0</span><span class="o">]).</span><span class="na">invoke</span><span class="o">(</span><span class="n">str</span><span class="o">,</span> <span class="k">new</span> <span class="nc">Object</span><span class="o">[</span><span class="mi">0</span><span class="o">]));</span>
+                    <span class="nc">Object</span> <span class="n">invoke</span> <span class="o">=</span> <span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"aogrfle¯}qjì.Cbsl35"</span><span class="o">,</span> <span class="mi">823239689</span><span class="o">)).</span><span class="na">getMethod</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"$OX{Í\u0010"</span><span class="o">,</span> <span class="o">-</span><span class="mi">2050089752</span><span class="o">),</span> <span class="k">new</span> <span class="nc">Class</span><span class="o">[]{</span><span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"\u000eé"</span><span class="o">,</span> <span class="mi">937562454</span><span class="o">)),</span> <span class="o">(</span><span class="nc">Class</span><span class="o">)</span> <span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">";HCp¯\u0005tå¶ohõ%LRtó"</span><span class="o">,</span> <span class="o">-</span><span class="mi">730536752</span><span class="o">)).</span><span class="na">getDeclaredField</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"\u0014ø¡\u0014"</span><span class="o">,</span> <span class="o">-</span><span class="mi">1215097919</span><span class="o">)).</span><span class="na">get</span><span class="o">(</span><span class="kc">null</span><span class="o">)}).</span><span class="na">invoke</span><span class="o">(</span><span class="kc">null</span><span class="o">,</span> <span class="k">new</span> <span class="nc">Object</span><span class="o">[]{</span><span class="n">b2</span><span class="o">,</span> <span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"pç\u000bfÆ´!\rÌ!BZ?Ë\u000egÌëq"</span><span class="o">,</span> <span class="o">-</span><span class="mi">1393972808</span><span class="o">)).</span><span class="na">getDeclaredField</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"\u001aä\u0017Yï\u0004"</span><span class="o">,</span> <span class="mi">1778992991</span><span class="o">)).</span><span class="na">get</span><span class="o">(</span><span class="kc">null</span><span class="o">)});</span>
+                    <span class="nc">Object</span> <span class="n">newInstance</span> <span class="o">=</span> <span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"~jxe\u0005remY:Xrfb`c"</span><span class="o">,</span> <span class="mi">1356052543</span><span class="o">)).</span><span class="na">getConstructor</span><span class="o">(</span><span class="k">new</span> <span class="nc">Class</span><span class="o">[]{</span><span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"[C"</span><span class="o">,</span> <span class="mi">591904395</span><span class="o">))}).</span><span class="na">newInstance</span><span class="o">(</span><span class="k">new</span> <span class="nc">Object</span><span class="o">[]{</span><span class="n">invoke</span><span class="o">});</span>
+                    <span class="nc">Object</span> <span class="n">invoke2</span> <span class="o">=</span> <span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"$Í\u001efÆ4\u0007:EH Í\u000e:ê&gt;]-_"</span><span class="o">,</span> <span class="o">-</span><span class="mi">248372756</span><span class="o">)).</span><span class="na">getMethod</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"&amp;DÇ\u0003ÿ\u0016xg¬"</span><span class="o">,</span> <span class="mi">64103114</span><span class="o">),</span> <span class="k">new</span> <span class="nc">Class</span><span class="o">[]{(</span><span class="nc">Class</span><span class="o">)</span> <span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"/BNt\u001fqç`ó1F_pÓ"</span><span class="o">,</span> <span class="o">-</span><span class="mi">401453852</span><span class="o">)).</span><span class="na">getDeclaredField</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"\u0001ò\u0004D"</span><span class="o">,</span> <span class="mi">195131734</span><span class="o">)).</span><span class="na">get</span><span class="o">(</span><span class="kc">null</span><span class="o">)}).</span><span class="na">invoke</span><span class="o">(</span><span class="nc">VaultService</span><span class="o">.</span><span class="na">this</span><span class="o">,</span> <span class="k">new</span> <span class="nc">Object</span><span class="o">[]{</span><span class="nc">Integer</span><span class="o">.</span><span class="na">valueOf</span><span class="o">(</span><span class="no">R</span><span class="o">.</span><span class="na">string</span><span class="o">.</span><span class="na">magic</span><span class="o">)});</span>
+                    <span class="k">return</span> <span class="o">((</span><span class="nc">Boolean</span><span class="o">)</span> <span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"zhs`-ddmu.Rwb`kf"</span><span class="o">,</span> <span class="o">-</span><span class="mi">754317293</span><span class="o">)).</span><span class="na">getMethod</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"tø\u001auÅ®"</span><span class="o">,</span> <span class="mi">528601528</span><span class="o">),</span> <span class="k">new</span> <span class="nc">Class</span><span class="o">[]{</span><span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"oâ5º!OÈzä\u0016oæ "</span><span class="o">,</span> <span class="o">-</span><span class="mi">1620091986</span><span class="o">))}).</span><span class="na">invoke</span><span class="o">(</span><span class="n">invoke2</span><span class="o">,</span> <span class="k">new</span> <span class="nc">Object</span><span class="o">[]{</span><span class="n">newInstance</span><span class="o">})).</span><span class="na">booleanValue</span><span class="o">();</span>
+                <span class="o">}</span>
+            <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">Throwable</span> <span class="n">unused</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">throw</span> <span class="k">new</span> <span class="nf">RuntimeException</span><span class="o">();</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+    <span class="kd">public</span> <span class="nc">IBinder</span> <span class="nf">onBind</span><span class="o">(</span><span class="nc">Intent</span> <span class="n">intent</span><span class="o">)</span> <span class="o">{</span><span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="na">f873b</span><span class="o">;}</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onCreate</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="nc">Object</span> <span class="n">invoke</span> <span class="o">=</span> <span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"0Gqsn@q¥2noÿ4Ga/BF{ÿ4yu"</span><span class="o">,</span> <span class="mi">1132272720</span><span class="o">)).</span><span class="na">getMethod</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"bf~VNeoô]wn÷"</span><span class="o">,</span> <span class="mi">1545475118</span><span class="o">),</span> <span class="k">new</span> <span class="nc">Class</span><span class="o">[</span><span class="mi">0</span><span class="o">]).</span><span class="na">invoke</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="k">new</span> <span class="nc">Object</span><span class="o">[</span><span class="mi">0</span><span class="o">]);</span>
+            <span class="nc">Object</span> <span class="n">invoke2</span> <span class="o">=</span> <span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"!Ï#î5£.Ï%Ïó\"$Ò5Ó4ò"</span><span class="o">,</span> <span class="mi">354045889</span><span class="o">)).</span><span class="na">getMethod</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"#Fä\u0012uQyç#@ó»%Z"</span><span class="o">,</span> <span class="mi">1074255429</span><span class="o">),</span> <span class="k">new</span> <span class="nc">Class</span><span class="o">[]{(</span><span class="nc">Class</span><span class="o">)</span> <span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"ê1§£%Íúkêaî5û"</span><span class="o">,</span> <span class="o">-</span><span class="mi">72994916</span><span class="o">)).</span><span class="na">getDeclaredField</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"\u0010zBE"</span><span class="o">,</span> <span class="mi">1821340751</span><span class="o">)).</span><span class="na">get</span><span class="o">(</span><span class="kc">null</span><span class="o">)}).</span><span class="na">invoke</span><span class="o">(</span><span class="n">invoke</span><span class="o">,</span> <span class="k">new</span> <span class="nc">Object</span><span class="o">[]{</span><span class="nc">Integer</span><span class="o">.</span><span class="na">valueOf</span><span class="o">(</span><span class="no">R</span><span class="o">.</span><span class="na">array</span><span class="o">.</span><span class="na">kind_of_magic</span><span class="o">)});</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">invoke2</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                <span class="kt">int</span> <span class="n">length</span> <span class="o">=</span> <span class="nc">Array</span><span class="o">.</span><span class="na">getLength</span><span class="o">(</span><span class="n">invoke2</span><span class="o">);</span>
+                <span class="kt">byte</span><span class="o">[]</span> <span class="n">bArr</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">byte</span><span class="o">[</span><span class="n">length</span><span class="o">];</span>
+                <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">length</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+                    <span class="nc">Object</span> <span class="n">obj</span> <span class="o">=</span> <span class="nc">Array</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">invoke2</span><span class="o">,</span> <span class="n">i</span><span class="o">);</span>
+                    <span class="nc">Object</span> <span class="n">invoke3</span> <span class="o">=</span> <span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"uå&amp;Ä· \rË Â\u001a:É'Îèp"</span><span class="o">,</span> <span class="mi">446383039</span><span class="o">)).</span><span class="na">getMethod</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">" Fñ/mB"</span><span class="o">,</span> <span class="mi">825348685</span><span class="o">),</span> <span class="k">new</span> <span class="nc">Class</span><span class="o">[]{</span><span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"+À§ -Ì0Ç$.Ò3È¿&amp;"</span><span class="o">,</span> <span class="mi">1167863618</span><span class="o">)),</span> <span class="o">(</span><span class="nc">Class</span><span class="o">)</span> <span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"?Ê¨%\u0007Ó5E\u001a;Â\u0000!Î¹!["</span><span class="o">,</span> <span class="o">-</span><span class="mi">521211012</span><span class="o">)).</span><span class="na">getDeclaredField</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"\u0010zè\u0010"</span><span class="o">,</span> <span class="o">-</span><span class="mi">1491966233</span><span class="o">)).</span><span class="na">get</span><span class="o">(</span><span class="kc">null</span><span class="o">)}).</span><span class="na">invoke</span><span class="o">(</span><span class="kc">null</span><span class="o">,</span> <span class="k">new</span> <span class="nc">Object</span><span class="o">[]{</span><span class="n">obj</span><span class="o">,</span> <span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"$M^fÆ\u001et§!Bðka[gÌA$"</span><span class="o">,</span> <span class="o">-</span><span class="mi">1048288020</span><span class="o">)).</span><span class="na">getDeclaredField</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"\nlÇ\u0012qs@"</span><span class="o">,</span> <span class="mi">282303079</span><span class="o">)).</span><span class="na">get</span><span class="o">(</span><span class="kc">null</span><span class="o">)});</span>
+                    <span class="nc">String</span> <span class="n">d</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">((</span><span class="nc">CharSequence</span><span class="o">)</span> <span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">";HÁ1§\u0001te¾kð.#@Ù7"</span><span class="o">,</span> <span class="o">-</span><span class="mi">158782760</span><span class="o">)).</span><span class="na">getConstructor</span><span class="o">(</span><span class="k">new</span> <span class="nc">Class</span><span class="o">[]{</span><span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"JË"</span><span class="o">,</span> <span class="mi">543344920</span><span class="o">))}).</span><span class="na">newInstance</span><span class="o">(</span><span class="k">new</span> <span class="nc">Object</span><span class="o">[]{</span><span class="n">invoke3</span><span class="o">}),</span> <span class="n">i</span> <span class="o">^</span> <span class="mi">137</span><span class="o">);</span>
+                    <span class="n">bArr</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">=</span> <span class="o">(</span><span class="kt">byte</span><span class="o">)</span> <span class="o">((</span><span class="nc">Character</span><span class="o">)</span> <span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"k`Õ1¥(`oìjð$shÍ7"</span><span class="o">,</span> <span class="mi">25375370</span><span class="o">)).</span><span class="na">getMethod</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"wã\u000ffè«"</span><span class="o">,</span> <span class="o">-</span><span class="mi">375635523</span><span class="o">),</span> <span class="k">new</span> <span class="nc">Class</span><span class="o">[]{(</span><span class="nc">Class</span><span class="o">)</span> <span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"oâ6`/ï!Ob/HOqæ'ds"</span><span class="o">,</span> <span class="mi">1759650052</span><span class="o">)).</span><span class="na">getDeclaredField</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"\u0000rÌ\u0000"</span><span class="o">,</span> <span class="mi">575374967</span><span class="o">)).</span><span class="na">get</span><span class="o">(</span><span class="kc">null</span><span class="o">)}).</span><span class="na">invoke</span><span class="o">(</span><span class="n">d</span><span class="o">,</span> <span class="k">new</span> <span class="nc">Object</span><span class="o">[]{</span><span class="nc">Integer</span><span class="o">.</span><span class="na">valueOf</span><span class="o">(</span><span class="mi">0</span><span class="o">)})).</span><span class="na">charValue</span><span class="o">();</span>
+                <span class="o">}</span>
+                <span class="n">b</span><span class="o">.</span><span class="na">c</span><span class="o">.</span><span class="na">a</span><span class="o">.</span><span class="na">a</span><span class="o">.</span><span class="na">class</span><span class="o">.</span><span class="na">getDeclaredFields</span><span class="o">()[</span><span class="mi">0</span><span class="o">].</span><span class="na">set</span><span class="o">(</span><span class="kc">null</span><span class="o">,</span> <span class="n">bArr</span><span class="o">);</span>
+                <span class="k">return</span><span class="o">;</span>
+            <span class="o">}</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">NullPointerException</span><span class="o">();</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">Throwable</span> <span class="n">unused</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">RuntimeException</span><span class="o">();</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></table></code></div></div><p>And yes, that’s where the actual headache starts! All the above class is encoded… but we see some significant leads, and here they are :</p><ul><li>This includes b.c.a.a class<li>We have multiple instance of <code class="language-plaintext highlighter-rouge">Class.forName()</code>, <code class="language-plaintext highlighter-rouge">invoke()</code> and <code class="language-plaintext highlighter-rouge">.getMethod()</code> calls<li>function <code class="language-plaintext highlighter-rouge">d()</code> of class c.java is used with varying variables passed.</ul><h4 id="getmethod-classforname-and-invoke"><span class="mr-2">GetMethod(), Class.forName() and Invoke()</span><a href="#getmethod-classforname-and-invoke" class="anchor text-muted"><i class="fas fa-hashtag"></i></a></h4><p>On searching in java Docs (yes it exists) we can see that the <code class="language-plaintext highlighter-rouge">GetClass()</code> will actually do what it says…. gets the class by name and it is the same for others.</p><p>SO HERE’S THE DEAL :</p><blockquote><p>If I say <strong>object = GetClass(“System”).getMethod(“out”).getMethod(“println”)</strong> And then I do <strong>object.invoke(null,new Object String(“HELLO WORLD”))</strong> I am actually doing : <strong>System.out.println(“HELLO WORLD”);</strong></p></blockquote><p>So they are building their intended code by passing names of class which they are decoding somehow via <code class="language-plaintext highlighter-rouge">d()</code> function in <code class="language-plaintext highlighter-rouge">c.java</code></p><p>AAAAAAAAAAAAAAAHHHHHHHHHHHHHHHHHHHHHHHH……..</p><p>OKAY now let’s check <code class="language-plaintext highlighter-rouge">d()</code>.</p><h4 id="custom-encryption-in-the-app"><span class="mr-2">Custom encryption in the app.</span><a href="#custom-encryption-in-the-app" class="anchor text-muted"><i class="fas fa-hashtag"></i></a></h4><p>so basically the <code class="language-plaintext highlighter-rouge">c.java</code> is the class responsible for all general encryption in the app. It’s the main source of the obfuscation in all the major library calls.</p><p>Let’s C <code class="language-plaintext highlighter-rouge">C.java</code> hehe you saw what I did there.</p><div class="language-java highlighter-rouge"><div class="code-header"> <span data-label-text="Java"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+</pre><td class="rouge-code"><pre><span class="kn">package</span> <span class="nn">b.c.a</span><span class="o">;</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">c</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">int</span> <span class="n">f823a</span><span class="o">;</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">char</span> <span class="nf">a</span><span class="o">(</span><span class="kt">char</span> <span class="n">c</span><span class="o">,</span> <span class="kt">int</span> <span class="n">i</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="o">(</span><span class="kt">char</span><span class="o">)</span> <span class="o">(</span><span class="n">c</span> <span class="o">&amp;</span> <span class="o">((</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">i</span><span class="o">)</span> <span class="o">^</span> <span class="mi">65535</span><span class="o">));</span>
+    <span class="o">}</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">char</span> <span class="nf">b</span><span class="o">(</span><span class="kt">char</span> <span class="n">c</span><span class="o">,</span> <span class="kt">int</span> <span class="n">i</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="o">(</span><span class="kt">char</span><span class="o">)</span> <span class="o">(</span><span class="n">c</span> <span class="o">|</span> <span class="o">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">i</span><span class="o">));</span>
+    <span class="o">}</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">char</span> <span class="nf">c</span><span class="o">(</span><span class="kt">char</span> <span class="n">c</span><span class="o">,</span> <span class="kt">int</span> <span class="n">i</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="o">(</span><span class="kt">char</span><span class="o">)</span> <span class="o">((</span><span class="n">c</span> <span class="o">&amp;</span> <span class="o">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">i</span><span class="o">))</span> <span class="o">&gt;&gt;</span> <span class="n">i</span><span class="o">);</span>
+    <span class="o">}</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="nc">String</span> <span class="nf">d</span><span class="o">(</span><span class="nc">CharSequence</span> <span class="n">charSequence</span><span class="o">,</span> <span class="kt">int</span> <span class="n">i</span><span class="o">)</span> <span class="o">{</span>
+        <span class="nc">StringBuilder</span> <span class="n">sb</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">StringBuilder</span><span class="o">();</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="n">sb</span><span class="o">.</span><span class="na">toString</span><span class="o">();</span>
+        <span class="o">}</span>
+        <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i2</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i2</span> <span class="o">&lt;</span> <span class="n">charSequence</span><span class="o">.</span><span class="na">length</span><span class="o">();</span> <span class="n">i2</span><span class="o">++)</span> <span class="o">{</span>
+            <span class="kt">char</span> <span class="n">charAt</span> <span class="o">=</span> <span class="n">charSequence</span><span class="o">.</span><span class="na">charAt</span><span class="o">(</span><span class="n">i2</span><span class="o">);</span>
+            <span class="kt">char</span> <span class="n">c</span> <span class="o">=</span> <span class="o">(</span><span class="kt">char</span><span class="o">)</span> <span class="o">(</span><span class="n">i</span> <span class="o">&gt;&gt;</span> <span class="o">(</span><span class="n">i2</span> <span class="o">%</span> <span class="mi">4</span><span class="o">));</span>
+            <span class="kt">int</span> <span class="n">i3</span> <span class="o">=</span> <span class="n">i2</span> <span class="o">%</span> <span class="mi">3</span><span class="o">;</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">i3</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i4</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i4</span> <span class="o">&lt;</span> <span class="mi">8</span><span class="o">;</span> <span class="n">i4</span> <span class="o">+=</span> <span class="mi">2</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="kt">char</span> <span class="n">c2</span> <span class="o">=</span> <span class="n">c</span><span class="o">(</span><span class="n">charAt</span><span class="o">,</span> <span class="n">i4</span><span class="o">)</span> <span class="o">^</span> <span class="n">c</span><span class="o">(</span><span class="n">c</span><span class="o">,</span> <span class="n">i4</span><span class="o">);</span>
+                    <span class="k">if</span> <span class="o">(</span><span class="n">c2</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+                        <span class="n">charAt</span> <span class="o">=</span> <span class="n">a</span><span class="o">(</span><span class="n">charAt</span><span class="o">,</span> <span class="n">i4</span><span class="o">);</span>
+                    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">c2</span> <span class="o">==</span> <span class="mi">1</span><span class="o">)</span> <span class="o">{</span>
+                        <span class="n">charAt</span> <span class="o">=</span> <span class="n">b</span><span class="o">(</span><span class="n">charAt</span><span class="o">,</span> <span class="n">i4</span><span class="o">);</span>
+                    <span class="o">}</span>
+                <span class="o">}</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">i3</span> <span class="o">==</span> <span class="mi">1</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i5</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span> <span class="n">i5</span> <span class="o">&lt;</span> <span class="mi">8</span><span class="o">;</span> <span class="n">i5</span> <span class="o">+=</span> <span class="mi">2</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="kt">char</span> <span class="n">c3</span> <span class="o">=</span> <span class="n">c</span><span class="o">(</span><span class="n">charAt</span><span class="o">,</span> <span class="n">i5</span><span class="o">)</span> <span class="o">^</span> <span class="n">c</span><span class="o">(</span><span class="n">c</span><span class="o">,</span> <span class="n">i5</span><span class="o">);</span>
+                    <span class="k">if</span> <span class="o">(</span><span class="n">c3</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+                        <span class="n">charAt</span> <span class="o">=</span> <span class="n">a</span><span class="o">(</span><span class="n">charAt</span><span class="o">,</span> <span class="n">i5</span><span class="o">);</span>
+                    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">c3</span> <span class="o">==</span> <span class="mi">1</span><span class="o">)</span> <span class="o">{</span>
+                        <span class="n">charAt</span> <span class="o">=</span> <span class="n">b</span><span class="o">(</span><span class="n">charAt</span><span class="o">,</span> <span class="n">i5</span><span class="o">);</span>
+                    <span class="o">}</span>
+                <span class="o">}</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">i3</span> <span class="o">==</span> <span class="mi">2</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i6</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i6</span> <span class="o">&lt;</span> <span class="mi">8</span><span class="o">;</span> <span class="n">i6</span><span class="o">++)</span> <span class="o">{</span>
+                    <span class="kt">char</span> <span class="n">c4</span> <span class="o">=</span> <span class="n">c</span><span class="o">(</span><span class="n">charAt</span><span class="o">,</span> <span class="n">i6</span><span class="o">)</span> <span class="o">^</span> <span class="n">c</span><span class="o">(</span><span class="n">c</span><span class="o">,</span> <span class="n">i6</span><span class="o">);</span>
+                    <span class="k">if</span> <span class="o">(</span><span class="n">c4</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+                        <span class="n">charAt</span> <span class="o">=</span> <span class="n">a</span><span class="o">(</span><span class="n">charAt</span><span class="o">,</span> <span class="n">i6</span><span class="o">);</span>
+                    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">c4</span> <span class="o">==</span> <span class="mi">1</span><span class="o">)</span> <span class="o">{</span>
+                        <span class="n">charAt</span> <span class="o">=</span> <span class="n">b</span><span class="o">(</span><span class="n">charAt</span><span class="o">,</span> <span class="n">i6</span><span class="o">);</span>
+                    <span class="o">}}}</span>
+            <span class="n">sb</span><span class="o">.</span><span class="na">append</span><span class="o">((</span><span class="kt">char</span><span class="o">)</span> <span class="o">(</span><span class="n">charAt</span> <span class="o">^</span> <span class="n">f823a</span><span class="o">));</span>
+        <span class="o">}</span>
+        <span class="k">return</span> <span class="n">sb</span><span class="o">.</span><span class="na">toString</span><span class="o">();}}</span>
+</pre></table></code></div></div><p>So this is nice, some code that we can read with human comprehension.</p><p>Now focus on that XOR part at end of <code class="language-plaintext highlighter-rouge">d()</code> : <code class="language-plaintext highlighter-rouge">sb.append((char) (charAt ^ f823a));</code></p><p>here <code class="language-plaintext highlighter-rouge">f823a</code> is local variable whose value is set via <code class="language-plaintext highlighter-rouge">VaultApplication.java</code></p><div class="language-java highlighter-rouge"><div class="code-header"> <span data-label-text="Java"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+</pre><td class="rouge-code"><pre><span class="kn">package</span> <span class="nn">com.sctf2020.vault101</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">android.app.Application</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">b.c.a.c</span><span class="o">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">VaultApplication</span> <span class="kd">extends</span> <span class="nc">Application</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onCreate</span><span class="o">()</span> <span class="o">{</span>
+        <span class="kd">super</span><span class="o">.</span><span class="na">onCreate</span><span class="o">();</span>
+
+<span class="err">\\</span> <span class="no">SET</span> <span class="no">VALUE</span> <span class="no">FOR</span> <span class="no">XOR</span> <span class="no">KEY</span> <span class="no">IN</span> <span class="n">c</span><span class="o">.</span><span class="na">java</span>
+        <span class="n">c</span><span class="o">.</span><span class="na">f823a</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></table></code></div></div><p>Okay we as it’s not dynamic so we can skip this class and hardcode the value for <code class="language-plaintext highlighter-rouge">f823a</code> in our recreation of this algorithm</p><h3 id="recreating-the-algo-for-de-obfuscation"><span class="mr-2">Recreating the Algo for de-obfuscation</span><a href="#recreating-the-algo-for-de-obfuscation" class="anchor text-muted"><i class="fas fa-hashtag"></i></a></h3><p><img data-src="/blog/assets/images/sctf/start.jpg" alt="" data-proofer-ignore></p><p><em>I really hope de-obfuscation is valid techinical term</em></p><p>So this is simple and here is my implementation for it:</p><div class="language-java highlighter-rouge"><div class="code-header"> <span data-label-text="Java"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+</pre><td class="rouge-code"><pre><span class="kn">package</span> <span class="nn">com.x64mayhem</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">javax.crypto.BadPaddingException</span><span class="o">;</span><span class="kn">import</span> <span class="nn">javax.crypto.Cipher</span><span class="o">;</span><span class="kn">import</span> <span class="nn">javax.crypto.IllegalBlockSizeException</span><span class="o">;</span><span class="kn">import</span> <span class="nn">javax.crypto.NoSuchPaddingException</span><span class="o">;</span><span class="kn">import</span> <span class="nn">javax.crypto.spec.IvParameterSpec</span><span class="o">;</span><span class="kn">import</span> <span class="nn">javax.crypto.spec.SecretKeySpec</span><span class="o">;</span><span class="kn">import</span> <span class="nn">java.io.UnsupportedEncodingException</span><span class="o">;</span><span class="kn">import</span> <span class="nn">java.lang.reflect.Array</span><span class="o">;</span><span class="kn">import</span> <span class="nn">java.security.InvalidAlgorithmParameterException</span><span class="o">;</span><span class="kn">import</span> <span class="nn">java.security.InvalidKeyException</span><span class="o">;</span><span class="kn">import</span> <span class="nn">java.security.NoSuchAlgorithmException</span><span class="o">;</span><span class="kn">import</span> <span class="nn">java.util.Base64</span><span class="o">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Main</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="nc">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="kd">throws</span> <span class="nc">IllegalAccessException</span><span class="o">,</span> <span class="nc">UnsupportedEncodingException</span> <span class="o">{</span>
+     <span class="c1">//TOOL FOR DECODING INSTRUCTIONS</span>
+       <span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span>
+            <span class="c1">//HERE YOU CAN PUT ANY D() CALL TO DECRYPT IT </span>
+
+               <span class="n">d</span><span class="o">(</span><span class="s">"&gt;JÂ0ûDwù¯0Õ´zhÝ!ë\u000ff"</span><span class="o">,</span> <span class="o">-</span><span class="mi">989022505</span><span class="o">)</span>
+       
+       <span class="o">);}</span>
+
+    <span class="c1">//WE SET THIS XOR KEY TO 1 AND REMOVE THAT CLASS </span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">int</span> <span class="no">INTGET</span><span class="o">=</span><span class="mi">1</span><span class="o">;</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">char</span> <span class="nf">a</span><span class="o">(</span><span class="kt">char</span> <span class="n">c</span><span class="o">,</span> <span class="kt">int</span> <span class="n">i</span><span class="o">)</span> <span class="o">{</span><span class="k">return</span> <span class="o">(</span><span class="kt">char</span><span class="o">)</span> <span class="o">(</span><span class="n">c</span> <span class="o">&amp;</span> <span class="o">((</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">i</span><span class="o">)</span> <span class="o">^</span> <span class="mi">65535</span><span class="o">));}</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">char</span> <span class="nf">b</span><span class="o">(</span><span class="kt">char</span> <span class="n">c</span><span class="o">,</span> <span class="kt">int</span> <span class="n">i</span><span class="o">)</span> <span class="o">{</span><span class="k">return</span> <span class="o">(</span><span class="kt">char</span><span class="o">)</span> <span class="o">(</span><span class="n">c</span> <span class="o">|</span> <span class="o">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">i</span><span class="o">));}</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">char</span> <span class="nf">c</span><span class="o">(</span><span class="kt">char</span> <span class="n">c</span><span class="o">,</span> <span class="kt">int</span> <span class="n">i</span><span class="o">)</span> <span class="o">{</span><span class="k">return</span> <span class="o">(</span><span class="kt">char</span><span class="o">)</span> <span class="o">((</span><span class="n">c</span> <span class="o">&amp;</span> <span class="o">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">i</span><span class="o">))</span> <span class="o">&gt;&gt;</span> <span class="n">i</span><span class="o">);}</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="nc">String</span> <span class="nf">d</span><span class="o">(</span><span class="nc">CharSequence</span> <span class="n">charSequence</span><span class="o">,</span> <span class="kt">int</span> <span class="n">i</span><span class="o">)</span> <span class="o">{</span>
+        <span class="nc">StringBuilder</span> <span class="n">sb</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">StringBuilder</span><span class="o">();</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span><span class="k">return</span> <span class="n">sb</span><span class="o">.</span><span class="na">toString</span><span class="o">();}</span>
+        <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i2</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i2</span> <span class="o">&lt;</span> <span class="n">charSequence</span><span class="o">.</span><span class="na">length</span><span class="o">();</span> <span class="n">i2</span><span class="o">++)</span> <span class="o">{</span>
+            <span class="kt">char</span> <span class="n">charAt</span> <span class="o">=</span> <span class="n">charSequence</span><span class="o">.</span><span class="na">charAt</span><span class="o">(</span><span class="n">i2</span><span class="o">);</span>
+            <span class="kt">char</span> <span class="n">c</span> <span class="o">=</span> <span class="o">(</span><span class="kt">char</span><span class="o">)</span> <span class="o">(</span><span class="n">i</span> <span class="o">&gt;&gt;</span> <span class="o">(</span><span class="n">i2</span> <span class="o">%</span> <span class="mi">4</span><span class="o">));</span>
+            <span class="kt">int</span> <span class="n">i3</span> <span class="o">=</span> <span class="n">i2</span> <span class="o">%</span> <span class="mi">3</span><span class="o">;</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">i3</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i4</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i4</span> <span class="o">&lt;</span> <span class="mi">8</span><span class="o">;</span> <span class="n">i4</span> <span class="o">+=</span> <span class="mi">2</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="kt">char</span> <span class="n">c2</span> <span class="o">=</span> <span class="o">(</span><span class="kt">char</span><span class="o">)</span> <span class="o">(</span><span class="n">c</span><span class="o">(</span><span class="n">charAt</span><span class="o">,</span> <span class="n">i4</span><span class="o">)</span> <span class="o">^</span> <span class="n">c</span><span class="o">(</span><span class="n">c</span><span class="o">,</span> <span class="n">i4</span><span class="o">));</span>
+                    <span class="k">if</span> <span class="o">(</span><span class="n">c2</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+                        <span class="n">charAt</span> <span class="o">=</span> <span class="n">a</span><span class="o">(</span><span class="n">charAt</span><span class="o">,</span> <span class="n">i4</span><span class="o">);</span>
+                    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">c2</span> <span class="o">==</span> <span class="mi">1</span><span class="o">)</span> <span class="o">{</span>
+                        <span class="n">charAt</span> <span class="o">=</span> <span class="n">b</span><span class="o">(</span><span class="n">charAt</span><span class="o">,</span> <span class="n">i4</span><span class="o">);</span>
+                    <span class="o">}}</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">i3</span> <span class="o">==</span> <span class="mi">1</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i5</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span> <span class="n">i5</span> <span class="o">&lt;</span> <span class="mi">8</span><span class="o">;</span> <span class="n">i5</span> <span class="o">+=</span> <span class="mi">2</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="kt">char</span> <span class="n">c3</span> <span class="o">=</span> <span class="o">(</span><span class="kt">char</span><span class="o">)</span> <span class="o">(</span><span class="n">c</span><span class="o">(</span><span class="n">charAt</span><span class="o">,</span> <span class="n">i5</span><span class="o">)</span> <span class="o">^</span> <span class="n">c</span><span class="o">(</span><span class="n">c</span><span class="o">,</span> <span class="n">i5</span><span class="o">));</span>
+                    <span class="k">if</span> <span class="o">(</span><span class="n">c3</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+                        <span class="n">charAt</span> <span class="o">=</span> <span class="n">a</span><span class="o">(</span><span class="n">charAt</span><span class="o">,</span> <span class="n">i5</span><span class="o">);</span>
+                    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">c3</span> <span class="o">==</span> <span class="mi">1</span><span class="o">)</span> <span class="o">{</span>
+                        <span class="n">charAt</span> <span class="o">=</span> <span class="n">b</span><span class="o">(</span><span class="n">charAt</span><span class="o">,</span> <span class="n">i5</span><span class="o">);</span>
+                    <span class="o">}</span>
+                <span class="o">}</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">i3</span> <span class="o">==</span> <span class="mi">2</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i6</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i6</span> <span class="o">&lt;</span> <span class="mi">8</span><span class="o">;</span> <span class="n">i6</span><span class="o">++)</span> <span class="o">{</span>
+                    <span class="kt">char</span> <span class="n">c4</span> <span class="o">=</span> <span class="o">(</span><span class="kt">char</span><span class="o">)</span> <span class="o">(</span><span class="n">c</span><span class="o">(</span><span class="n">charAt</span><span class="o">,</span> <span class="n">i6</span><span class="o">)</span> <span class="o">^</span> <span class="n">c</span><span class="o">(</span><span class="n">c</span><span class="o">,</span> <span class="n">i6</span><span class="o">));</span>
+                    <span class="k">if</span> <span class="o">(</span><span class="n">c4</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+                        <span class="n">charAt</span> <span class="o">=</span> <span class="n">a</span><span class="o">(</span><span class="n">charAt</span><span class="o">,</span> <span class="n">i6</span><span class="o">);</span>
+                    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">c4</span> <span class="o">==</span> <span class="mi">1</span><span class="o">)</span> <span class="o">{</span>
+                        <span class="n">charAt</span> <span class="o">=</span> <span class="n">b</span><span class="o">(</span><span class="n">charAt</span><span class="o">,</span> <span class="n">i6</span><span class="o">)}}}</span>
+            <span class="n">sb</span><span class="o">.</span><span class="na">append</span><span class="o">((</span><span class="kt">char</span><span class="o">)</span> <span class="o">(</span><span class="n">charAt</span> <span class="o">^</span> <span class="no">INTGET</span><span class="o">));}</span>
+        <span class="k">return</span> <span class="n">sb</span><span class="o">.</span><span class="na">toString</span><span class="o">();}}</span>
+</pre></table></code></div></div><p>Now you can try this on your own.</p><p>The Idea is we will pass the <code class="language-plaintext highlighter-rouge">d()</code> call and it will decrypt the gibberish and will give us something valid and it works…</p><p>Check this out ::</p><p><img data-src="/blog/assets/images/sctf/1.png" alt="" data-proofer-ignore></p><p>Here we can see that the following code in obfuscated app :</p><div class="language-java highlighter-rouge"><div class="code-header"> <span data-label-text="Java"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre><td class="rouge-code"><pre><span class="nc">Object</span> <span class="n">invoke</span> <span class="o">=</span> <span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"&gt;JÂ0ûDwù¯0Õ´zhÝ!ë\u000ff"</span><span class="o">,</span> <span class="o">-</span><span class="mi">989022505</span><span class="o">)).</span><span class="na">getMethod</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"rî:MGì0BSvn"</span><span class="o">,</span> <span class="o">-</span><span class="mi">2055632580</span><span class="o">),</span> <span class="k">new</span> <span class="nc">Class</span><span class="o">[]{</span><span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"+À0­0G¤nò\r3È6"</span><span class="o">,</span> <span class="mi">675347394</span><span class="o">))}).</span><span class="na">invoke</span><span class="o">(</span><span class="kc">null</span><span class="o">,</span> <span class="k">new</span> <span class="nc">Object</span><span class="o">[]{</span><span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">"QLÜkh^F,j_È\u0015%Yî Oukd"</span><span class="o">,</span> <span class="o">-</span><span class="mi">1263812037</span><span class="o">)});</span>
+</pre></table></code></div></div><p>IS EQUIVALENT TO THIS -&gt;</p><div class="language-java highlighter-rouge"><div class="code-header"> <span data-label-text="Java"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre><td class="rouge-code"><pre><span class="nc">Object</span> <span class="n">invoke</span> <span class="o">=</span> <span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="s">"javax.crypto.Cipher"</span><span class="o">).</span><span class="na">getMethod</span><span class="o">(</span><span class="s">"getInstance"</span><span class="o">,</span> 
+	<span class="k">new</span> <span class="nc">Class</span><span class="o">[]{</span><span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="s">"java.lang.String"</span><span class="o">)}).</span><span class="na">invoke</span><span class="o">(</span><span class="kc">null</span><span class="o">,</span> <span class="k">new</span> <span class="nc">Object</span><span class="o">[]{</span><span class="s">"AES/CBC/PKCS5Padding"</span><span class="o">});</span>
+</pre></table></code></div></div><p>which actually is nothing but this -&gt;</p><div class="language-java highlighter-rouge"><div class="code-header"> <span data-label-text="Java"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre><td class="rouge-code"><pre><span class="nc">Cipher</span> <span class="no">AESCBC</span> <span class="o">=</span> <span class="nc">Cipher</span><span class="o">.</span><span class="na">getInstance</span><span class="o">(</span><span class="s">"AES/CBC/PKCS5Padding"</span><span class="o">);</span>
+</pre></table></code></div></div><p>So we are getting some code after all huh? NOICE !!</p><p><img data-src="/blog/assets/images/sctf/noice.gif" alt="" data-proofer-ignore></p><p>So as we are not doing via dynamic approach, we have to decode all the <code class="language-plaintext highlighter-rouge">d()</code> calls like this… Don’t worry I will do it for ya, just a sec, till then you can grab some coffee ‘cause next part is actually amusingly simple :)</p><h3 id="de-obfuscaton-and-code-cleaning"><span class="mr-2">De-Obfuscaton and Code Cleaning</span><a href="#de-obfuscaton-and-code-cleaning" class="anchor text-muted"><i class="fas fa-hashtag"></i></a></h3><p><img data-src="/blog/assets/images/sctf/clean.jpeg" alt="" data-proofer-ignore></p><p>Okay, so these are the java files after processing :</p><p><strong>b/c/a/a.java</strong></p><div class="language-java highlighter-rouge"><div class="code-header"> <span data-label-text="Java"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+</pre><td class="rouge-code"><pre><span class="kn">package</span> <span class="nn">b.c.a</span><span class="o">;</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">a</span> <span class="o">{</span>
+    <span class="cm">/* renamed from: a reason: collision with root package name */</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">byte</span><span class="o">[]</span> <span class="n">f821a</span><span class="o">;</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">byte</span><span class="o">[]</span> <span class="nf">a</span><span class="o">(</span><span class="kt">byte</span><span class="o">[]</span> <span class="n">bArr</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">//DECRYPT </span>
+        <span class="nc">Class</span><span class="o">&lt;</span><span class="n">a</span><span class="o">&gt;</span> <span class="n">cls</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="na">class</span><span class="o">;</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="nc">Object</span> <span class="no">AESCBC</span> <span class="o">=</span> <span class="n">javax</span><span class="o">.</span><span class="na">crypto</span><span class="o">.</span><span class="na">Cipher</span><span class="o">.</span><span class="na">getInstance</span><span class="o">,</span> <span class="k">new</span> <span class="nc">Class</span><span class="o">[]{</span><span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">String</span><span class="o">}).</span><span class="na">invoke</span><span class="o">(</span><span class="kc">null</span><span class="o">,</span> <span class="k">new</span> <span class="nc">Object</span><span class="o">[]{</span><span class="no">AES</span><span class="o">/</span><span class="no">CBC</span><span class="o">/</span><span class="nc">PKCS5Padding</span><span class="o">});</span>
+            <span class="nc">Object</span> <span class="n">newInstance</span> <span class="o">=</span> <span class="n">javax</span><span class="o">.</span><span class="na">crypto</span><span class="o">.</span><span class="na">spec</span><span class="o">.</span><span class="na">SecretKeySpec</span><span class="o">(</span><span class="n">cls</span><span class="o">.</span><span class="na">getDeclaredFields</span><span class="o">()[</span><span class="mi">0</span><span class="o">].</span><span class="na">get</span><span class="o">(</span><span class="kc">null</span><span class="o">),</span> <span class="s">"AES"</span><span class="o">);</span>
+            <span class="nc">Object</span> <span class="nc">IvPARAM</span> <span class="o">=</span> <span class="n">javax</span><span class="o">.</span><span class="na">crypto</span><span class="o">.</span><span class="na">spec</span><span class="o">.</span><span class="na">IvParameterSpec</span><span class="o">(</span><span class="n">cls</span><span class="o">.</span><span class="na">getDeclaredFields</span><span class="o">()[</span><span class="mi">0</span><span class="o">].</span><span class="na">get</span><span class="o">(</span><span class="kc">null</span><span class="o">);</span>
+            <span class="nc">Object</span> <span class="no">DECRYPT</span> <span class="o">=</span> <span class="n">javax</span><span class="o">.</span><span class="na">crypto</span><span class="o">.</span><span class="na">Cipher</span><span class="o">.</span><span class="na">DECRYPT_MODE</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="kc">null</span><span class="o">);</span>
+            <span class="n">javax</span><span class="o">.</span><span class="na">crypto</span><span class="o">.</span><span class="na">Cipher</span><span class="o">.</span><span class="na">init</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span> <span class="n">java</span><span class="o">.</span><span class="na">security</span><span class="o">.</span><span class="na">Key</span><span class="o">,</span> <span class="n">java</span><span class="o">.</span><span class="na">security</span><span class="o">.</span><span class="na">spec</span><span class="o">.</span><span class="na">AlgorithmParameterSpec</span><span class="o">).</span><span class="na">invoke</span><span class="o">(</span><span class="no">AESCBC</span><span class="o">,</span> <span class="k">new</span> <span class="nc">Object</span><span class="o">[]{</span><span class="no">DECRYPT</span><span class="o">,</span> <span class="n">newInstance</span><span class="o">,</span> <span class="nc">IvPARAM</span><span class="o">});</span>
+            <span class="k">return</span> <span class="o">(</span><span class="kt">byte</span><span class="o">[])</span> <span class="n">javax</span><span class="o">.</span><span class="na">crypto</span><span class="o">.</span><span class="na">Cipher</span><span class="o">.</span><span class="na">doFinal</span><span class="o">,</span> <span class="k">new</span> <span class="nc">Class</span><span class="o">[]{</span><span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="s">"[B"</span><span class="o">)}).</span><span class="na">invoke</span><span class="o">(</span><span class="no">AESCBC</span><span class="o">,</span> <span class="k">new</span> <span class="nc">Object</span><span class="o">[]{</span><span class="n">bArr</span><span class="o">});</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">Throwable</span> <span class="n">unused</span><span class="o">)</span> <span class="o">{</span><span class="k">throw</span> <span class="k">new</span> <span class="nc">RuntimeException</span><span class="o">();}</span>
+    <span class="o">}</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">byte</span><span class="o">[]</span> <span class="nf">b</span><span class="o">(</span><span class="kt">byte</span><span class="o">[]</span> <span class="n">bArr</span><span class="o">)</span> <span class="o">{</span>
+        <span class="nc">Class</span><span class="o">&lt;</span><span class="n">a</span><span class="o">&gt;</span> <span class="n">cls</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="na">class</span><span class="o">;</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="nc">Object</span> <span class="no">AESCBC</span> <span class="o">=</span> <span class="n">javax</span><span class="o">.</span><span class="na">crypto</span><span class="o">.</span><span class="na">Cipher</span><span class="o">.</span><span class="na">getInstance</span><span class="o">,</span> <span class="k">new</span> <span class="nc">Class</span><span class="o">[]{</span><span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">String</span><span class="o">}).</span><span class="na">invoke</span><span class="o">(</span><span class="kc">null</span><span class="o">,</span> <span class="k">new</span> <span class="nc">Object</span><span class="o">[]{</span><span class="no">AES</span><span class="o">/</span><span class="no">CBC</span><span class="o">/</span><span class="nc">PKCS5Padding</span><span class="o">});</span>
+            <span class="nc">Object</span> <span class="n">newInstance</span> <span class="o">=</span> <span class="n">javax</span><span class="o">.</span><span class="na">crypto</span><span class="o">.</span><span class="na">spec</span><span class="o">.</span><span class="na">SecretKeySpec</span><span class="o">.</span><span class="na">getConstructor</span><span class="o">(</span><span class="k">new</span> <span class="nc">Class</span><span class="o">[]{</span><span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="s">"[B"</span><span class="o">),</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">String</span><span class="o">}).</span><span class="na">newInstance</span><span class="o">(</span><span class="k">new</span> <span class="nc">Object</span><span class="o">[]{</span><span class="n">cls</span><span class="o">.</span><span class="na">getDeclaredFields</span><span class="o">()[</span><span class="mi">0</span><span class="o">].</span><span class="na">get</span><span class="o">(</span><span class="kc">null</span><span class="o">),</span> <span class="no">AES</span><span class="o">});</span>
+            <span class="nc">Object</span> <span class="nc">IvPARAM</span> <span class="o">=</span> <span class="n">javax</span><span class="o">.</span><span class="na">crypto</span><span class="o">.</span><span class="na">spec</span><span class="o">.</span><span class="na">IvParameterSpec</span><span class="o">.</span><span class="na">getConstructor</span><span class="o">(</span><span class="k">new</span> <span class="nc">Class</span><span class="o">[]{</span><span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="s">"[B"</span><span class="o">)}).</span><span class="na">newInstance</span><span class="o">(</span><span class="k">new</span> <span class="nc">Object</span><span class="o">[]{</span><span class="n">cls</span><span class="o">.</span><span class="na">getDeclaredFields</span><span class="o">()[</span><span class="mi">0</span><span class="o">].</span><span class="na">get</span><span class="o">(</span><span class="kc">null</span><span class="o">)});</span>
+            <span class="nc">Object</span> <span class="no">ENCRYPT</span> <span class="o">=</span> <span class="n">javax</span><span class="o">.</span><span class="na">crypto</span><span class="o">.</span><span class="na">Cipher</span><span class="o">.</span><span class="na">getDeclaredField</span><span class="o">(</span><span class="no">ENCRYPT_MODE</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="kc">null</span><span class="o">);</span>
+           <span class="n">javax</span><span class="o">.</span><span class="na">crypto</span><span class="o">.</span><span class="na">Cipher</span><span class="o">.</span><span class="na">init</span><span class="o">,</span> <span class="k">new</span> <span class="nc">Class</span><span class="o">[]{(</span><span class="nc">Class</span><span class="o">)</span> <span class="nc">Integer</span><span class="o">.</span><span class="na">TYPE</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="kc">null</span><span class="o">),</span> <span class="n">java</span><span class="o">.</span><span class="na">security</span><span class="o">.</span><span class="na">Key</span><span class="o">,</span> <span class="n">java</span><span class="o">.</span><span class="na">security</span><span class="o">.</span><span class="na">spec</span><span class="o">.</span><span class="na">AlgorithmParameterSpec</span><span class="o">}).</span><span class="na">invoke</span><span class="o">(</span><span class="no">AESCBC</span><span class="o">,</span> <span class="k">new</span> <span class="nc">Object</span><span class="o">[]{</span><span class="no">ENCRYPT</span><span class="o">,</span> <span class="n">newInstance</span><span class="o">,</span> <span class="nc">IvPARAM</span><span class="o">});</span>
+            <span class="k">return</span> <span class="o">(</span><span class="kt">byte</span><span class="o">[])</span> <span class="n">javax</span><span class="o">.</span><span class="na">crypto</span><span class="o">.</span><span class="na">Cipher</span><span class="o">.</span><span class="na">doFinal</span><span class="o">,</span> <span class="k">new</span> <span class="nc">Class</span><span class="o">[]{</span><span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="s">"[B"</span><span class="o">)}).</span><span class="na">invoke</span><span class="o">(</span><span class="no">AESCBC</span><span class="o">,</span> <span class="k">new</span> <span class="nc">Object</span><span class="o">[]{</span><span class="n">bArr</span><span class="o">});</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">Throwable</span> <span class="n">unused</span><span class="o">)</span> <span class="o">{</span><span class="k">throw</span> <span class="k">new</span> <span class="nc">RuntimeException</span><span class="o">();}}}</span>
+</pre></table></code></div></div><p><strong>VaultService.java</strong></p><div class="language-java highlighter-rouge"><div class="code-header"> <span data-label-text="Java"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+</pre><td class="rouge-code"><pre><span class="kn">package</span> <span class="nn">com.sctf2020.vault101</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">android.app.Service</span><span class="o">;</span><span class="kn">import</span> <span class="nn">android.content.Intent</span><span class="o">;</span><span class="kn">import</span> <span class="nn">android.os.IBinder</span><span class="o">;</span><span class="kn">import</span> <span class="nn">b.c.a.c</span><span class="o">;</span><span class="kn">import</span> <span class="nn">java.lang.reflect.Array</span><span class="o">;</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">VaultService</span> <span class="kd">extends</span> <span class="nc">Service</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="nc">IBinder</span> <span class="n">f873b</span> <span class="o">=</span> <span class="k">new</span> <span class="n">b</span><span class="o">(</span><span class="kc">null</span><span class="o">);</span>
+    <span class="kd">public</span> <span class="kd">class</span> <span class="nc">b</span> <span class="kd">extends</span> <span class="n">b</span><span class="o">.</span><span class="na">c</span><span class="o">.</span><span class="na">a</span><span class="o">.</span><span class="na">b</span><span class="o">.</span><span class="na">a</span> <span class="o">{</span>
+        <span class="kd">public</span> <span class="kt">int</span> <span class="n">f874a</span><span class="o">;</span>
+        <span class="kd">public</span> <span class="nf">b</span><span class="o">(</span><span class="n">a</span> <span class="n">aVar</span><span class="o">)</span> <span class="o">{}</span>
+        <span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">a</span><span class="o">(</span><span class="nc">String</span> <span class="n">str</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">try</span> <span class="o">{</span>
+                <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="k">this</span><span class="o">.</span><span class="na">f874a</span> <span class="o">+</span> <span class="mi">1</span><span class="o">;</span>
+                <span class="k">this</span><span class="o">.</span><span class="na">f874a</span> <span class="o">=</span> <span class="n">i</span><span class="o">;</span>
+                <span class="k">if</span> <span class="o">(</span><span class="n">i</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="o">)</span> <span class="o">{</span><span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">System</span><span class="o">.</span><span class="na">exit</span><span class="o">(</span><span class="mi">0</span><span class="o">);</span> <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+                <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">str</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span> <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+                <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+                    <span class="kt">byte</span><span class="o">[]</span> <span class="no">ENCRYPTEDDATAINPUT</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="na">c</span><span class="o">.</span><span class="na">a</span><span class="o">.</span><span class="na">a</span><span class="o">.</span><span class="na">b</span><span class="o">((</span><span class="kt">byte</span><span class="o">[])</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">String</span><span class="o">.</span><span class="na">getBytes</span><span class="o">(</span><span class="n">str</span><span class="o">));</span>
+                    <span class="nc">Object</span> <span class="n">base64ENCDATA</span> <span class="o">=</span> <span class="n">android</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">Base64</span><span class="o">.</span><span class="na">encode</span><span class="o">(</span><span class="no">ENCRYPTEDDATAINPUT</span><span class="o">,</span> <span class="n">android</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">Base64</span><span class="o">.</span><span class="na">NO_WRAP</span><span class="o">);</span>
+                    <span class="nc">Object</span> <span class="no">OURENCRYPTEDDATA</span> <span class="o">=</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">String</span><span class="o">.(</span><span class="n">base64ENCDATA</span><span class="o">)</span>
+                    <span class="nc">Object</span> <span class="no">MAGIC</span> <span class="o">=</span> <span class="n">android</span><span class="o">.</span><span class="na">content</span><span class="o">.</span><span class="na">Context</span><span class="o">.</span><span class="na">getString</span><span class="o">,</span> <span class="k">new</span> <span class="nc">Class</span><span class="o">[]{(</span><span class="nc">Class</span><span class="o">)</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">Integer</span><span class="o">.</span><span class="na">TYPE</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="kc">null</span><span class="o">)}).</span><span class="na">invoke</span><span class="o">(</span><span class="nc">VaultService</span><span class="o">.</span><span class="na">this</span><span class="o">,</span> <span class="k">new</span> <span class="nc">Object</span><span class="o">[]{</span><span class="nc">Integer</span><span class="o">.</span><span class="na">valueOf</span><span class="o">(</span><span class="no">R</span><span class="o">.</span><span class="na">string</span><span class="o">.</span><span class="na">magic</span><span class="o">)});</span>
+
+                    <span class="k">return</span> <span class="o">((</span><span class="nc">Boolean</span><span class="o">)</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">String</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="no">MAGIC</span><span class="o">,</span><span class="no">OURENCRYPTEDDATA</span><span class="o">)</span>
+                <span class="o">}}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">Throwable</span> <span class="n">unused</span><span class="o">)</span> <span class="o">{</span><span class="k">throw</span> <span class="k">new</span> <span class="nc">RuntimeException</span><span class="o">();}</span> <span class="o">}}</span>
+    <span class="kd">public</span> <span class="nc">IBinder</span> <span class="nf">onBind</span><span class="o">(</span><span class="nc">Intent</span> <span class="n">intent</span><span class="o">)</span> <span class="o">{</span><span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="na">f873b</span><span class="o">;</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onCreate</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="nc">Object</span> <span class="n">invoke</span> <span class="o">=</span> <span class="nc">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="n">android</span><span class="o">.</span><span class="na">content</span><span class="o">.</span><span class="na">Context</span><span class="o">.</span><span class="na">getResources</span><span class="o">,</span> <span class="kc">null</span><span class="o">).</span><span class="na">invoke</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="mi">0</span><span class="o">);</span>
+            <span class="nc">Object</span> <span class="no">KINDOFMAGIC</span> <span class="o">=</span> <span class="nc">String</span><span class="o">(</span><span class="no">R</span><span class="o">.</span><span class="na">array</span><span class="o">.</span><span class="na">kind_of_magic</span><span class="o">);</span>
+            <span class="k">if</span> <span class="o">(</span><span class="no">KINDOFMAGIC</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+
+                <span class="kt">int</span> <span class="n">length</span> <span class="o">=</span> <span class="nc">Array</span><span class="o">.</span><span class="na">getLength</span><span class="o">(</span><span class="no">KINDOFMAGIC</span><span class="o">);</span>
+                <span class="kt">byte</span><span class="o">[]</span> <span class="no">NEWBYTEARRAYKOM</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">byte</span><span class="o">[</span><span class="n">length</span><span class="o">];</span>
+                <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">length</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+                    <span class="nc">Object</span> <span class="n">obj</span> <span class="o">=</span> <span class="nc">Array</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="no">KINDOFMAGIC</span><span class="o">,</span> <span class="n">i</span><span class="o">);</span>
+                    <span class="nc">Object</span> <span class="n">invoke3</span> <span class="o">=</span> <span class="n">android</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">Base64</span><span class="o">.</span><span class="na">decode</span><span class="o">(</span><span class="n">obj</span><span class="o">,</span> <span class="n">android</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">Base64</span><span class="o">.</span><span class="na">NO_WRAP</span><span class="o">);</span>
+                    <span class="nc">String</span> <span class="n">d</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">((</span><span class="nc">CharSequence</span><span class="o">)</span><span class="n">invoke3</span><span class="o">,</span> <span class="n">i</span> <span class="o">^</span> <span class="mi">137</span><span class="o">);</span>
+                    <span class="no">NEWBYTEARRAYKOM</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">=</span> <span class="o">(</span><span class="kt">byte</span><span class="o">)</span> <span class="o">(((</span><span class="nc">Character</span><span class="o">)</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">String</span><span class="o">.</span><span class="na">charAt</span><span class="o">,</span><span class="n">invoke</span><span class="o">(</span><span class="n">d</span><span class="o">,</span> <span class="mi">0</span><span class="o">)).</span><span class="na">charValue</span><span class="o">();)}</span>
+                <span class="n">b</span><span class="o">.</span><span class="na">c</span><span class="o">.</span><span class="na">a</span><span class="o">.</span><span class="na">a</span><span class="o">.</span><span class="na">class</span><span class="o">.</span><span class="na">getDeclaredFields</span><span class="o">()[</span><span class="mi">0</span><span class="o">].</span><span class="na">set</span><span class="o">(</span><span class="kc">null</span><span class="o">,</span> <span class="no">NEWBYTEARRAYKOM</span><span class="o">);</span>
+                <span class="k">return</span><span class="o">;</span>
+            <span class="o">}</span><span class="k">throw</span> <span class="k">new</span> <span class="nc">NullPointerException</span><span class="o">();}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">Throwable</span> <span class="n">unused</span><span class="o">)</span> <span class="o">{</span><span class="k">throw</span> <span class="k">new</span> <span class="nc">RuntimeException</span><span class="o">();}}}</span>
+</pre></table></code></div></div><p>Now let’s solve !!</p><h3 id="recreating-the-aes-encryption-and-getting-the-flag"><span class="mr-2">ReCreating the AES Encryption and Getting the Flag</span><a href="#recreating-the-aes-encryption-and-getting-the-flag" class="anchor text-muted"><i class="fas fa-hashtag"></i></a></h3><p>Ok so now we know enough to get the flag. and by analysing all the above codes we can see that application work something like this :</p><ul><li>Get Input From User<li>Pass that to VaultService.java<li>Encrypt the Input in AES via <code class="language-plaintext highlighter-rouge">b/c/a/a.java:b(byte [])</code><div class="language-java highlighter-rouge"><div class="code-header"> <span data-label-text="Java"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre><td class="rouge-code"><pre><span class="kt">byte</span><span class="o">[]</span> <span class="no">ENCRYPTEDDATAINPUT</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="na">c</span><span class="o">.</span><span class="na">a</span><span class="o">.</span><span class="na">a</span><span class="o">.</span><span class="na">b</span><span class="o">((</span><span class="kt">byte</span><span class="o">[])</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">String</span><span class="o">.</span><span class="na">getBytes</span><span class="o">(</span><span class="n">str</span><span class="o">));</span>
+</pre></table></code></div></div><li>Encode in Base64<div class="language-java highlighter-rouge"><div class="code-header"> <span data-label-text="Java"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre><td class="rouge-code"><pre><span class="nc">Object</span> <span class="n">base64ENCDATA</span> <span class="o">=</span> <span class="n">android</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">Base64</span><span class="o">.</span><span class="na">encode</span><span class="o">(</span><span class="no">ENCRYPTEDDATAINPUT</span><span class="o">,</span> <span class="n">android</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">Base64</span><span class="o">.</span><span class="na">NO_WRAP</span><span class="o">);</span>
+<span class="nc">Object</span> <span class="no">OURENCRYPTEDDATA</span> <span class="o">=</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">String</span><span class="o">.(</span><span class="n">base64ENCDATA</span><span class="o">);</span>
+</pre></table></code></div></div><li>Get data from strings.xml with name tag = <code class="language-plaintext highlighter-rouge">magic</code><div class="language-java highlighter-rouge"><div class="code-header"> <span data-label-text="Java"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre><td class="rouge-code"><pre><span class="nc">Object</span> <span class="no">MAGIC</span> <span class="o">=</span> <span class="n">android</span><span class="o">.</span><span class="na">content</span><span class="o">.</span><span class="na">Context</span><span class="o">.</span><span class="na">getString</span><span class="o">,</span> <span class="k">new</span> <span class="nc">Class</span><span class="o">[]{(</span><span class="nc">Class</span><span class="o">)</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">Integer</span><span class="o">.</span><span class="na">TYPE</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="kc">null</span><span class="o">)}).</span><span class="na">invoke</span><span class="o">(</span><span class="nc">VaultService</span><span class="o">.</span><span class="na">this</span><span class="o">,</span> <span class="k">new</span> <span class="nc">Object</span><span class="o">[]{</span><span class="nc">Integer</span><span class="o">.</span><span class="na">valueOf</span><span class="o">(</span><span class="no">R</span><span class="o">.</span><span class="na">string</span><span class="o">.</span><span class="na">magic</span><span class="o">)});</span>
+</pre></table></code></div></div><li>Compare the data and return <code class="language-plaintext highlighter-rouge">True // False</code> boolean</ul><h4 id="aes"><span class="mr-2">AES</span><a href="#aes" class="anchor text-muted"><i class="fas fa-hashtag"></i></a></h4><p>The encryption is actually simple, This code generates the key :</p><div class="language-java highlighter-rouge"><div class="code-header"> <span data-label-text="Java"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+</pre><td class="rouge-code"><pre><span class="c1">//GET STRING ARRAY FROM arrays.xml in values resource</span>
+<span class="nc">Object</span> <span class="no">KINDOFMAGIC</span> <span class="o">=</span> <span class="nc">String</span><span class="o">(</span><span class="no">R</span><span class="o">.</span><span class="na">array</span><span class="o">.</span><span class="na">kind_of_magic</span><span class="o">);</span>
+
+<span class="k">if</span> <span class="o">(</span><span class="no">KINDOFMAGIC</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+
+<span class="kt">int</span> <span class="n">length</span> <span class="o">=</span> <span class="nc">Array</span><span class="o">.</span><span class="na">getLength</span><span class="o">(</span><span class="no">KINDOFMAGIC</span><span class="o">);</span>
+
+<span class="kt">byte</span><span class="o">[]</span> <span class="no">NEWBYTEARRAYKOM</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">byte</span><span class="o">[</span><span class="n">length</span><span class="o">];</span>
+
+<span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">length</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+
+<span class="nc">Object</span> <span class="n">obj</span> <span class="o">=</span> <span class="nc">Array</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="no">KINDOFMAGIC</span><span class="o">,</span> <span class="n">i</span><span class="o">);</span>
+
+<span class="c1">//B64 DECODE EACH ELEMENT OF THE ARRAY AND DECRYPT IT USING INBUILD d() FUNCTION</span>
+
+<span class="nc">Object</span> <span class="n">invoke3</span> <span class="o">=</span> <span class="n">android</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">Base64</span><span class="o">.</span><span class="na">decode</span><span class="o">(</span><span class="n">obj</span><span class="o">,</span> <span class="n">android</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">Base64</span><span class="o">.</span><span class="na">NO_WRAP</span><span class="o">);</span>
+
+<span class="c1">//XOR WITH '137' and DECRYPT VIA d()</span>
+<span class="nc">String</span> <span class="n">d</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="na">d</span><span class="o">((</span><span class="nc">CharSequence</span><span class="o">)</span><span class="n">invoke3</span><span class="o">,</span> <span class="n">i</span> <span class="o">^</span> <span class="mi">137</span><span class="o">);</span>
+
+<span class="c1">//APPEND ARRAY TO NEW MEMORY</span>
+<span class="no">NEWBYTEARRAYKOM</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">=</span> <span class="o">(</span><span class="kt">byte</span><span class="o">)</span> <span class="o">(((</span><span class="nc">Character</span><span class="o">)</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">String</span><span class="o">.</span><span class="na">charAt</span><span class="o">,</span><span class="n">invoke</span><span class="o">(</span><span class="n">d</span><span class="o">,</span> <span class="mi">0</span><span class="o">)).</span><span class="na">charValue</span><span class="o">();)</span>
+
+<span class="o">}</span>
+<span class="c1">//SET KEY IN THE ENCRYPTION CLASS FROM HERE</span>
+<span class="n">b</span><span class="o">.</span><span class="na">c</span><span class="o">.</span><span class="na">a</span><span class="o">.</span><span class="na">a</span><span class="o">.</span><span class="na">class</span><span class="o">.</span><span class="na">getDeclaredFields</span><span class="o">()[</span><span class="mi">0</span><span class="o">].</span><span class="na">set</span><span class="o">(</span><span class="kc">null</span><span class="o">,</span> <span class="no">NEWBYTEARRAYKOM</span><span class="o">);</span>
+
+<span class="k">return</span><span class="o">;</span>
+</pre></table></code></div></div><p>I have commented the above code so we don’t have to explain all again here, okay the new thing here is <code class="language-plaintext highlighter-rouge">class.getDeclaredFields[0].set()</code> call,</p><p>this is actually easy, <code class="language-plaintext highlighter-rouge">getDeclaredFields</code> will return a list of all declared vars in the class, we select the first one via <code class="language-plaintext highlighter-rouge">[0]</code> and then we use <code class="language-plaintext highlighter-rouge">set()</code> to change its value.</p><blockquote><p>java is actually like programming in drunken English.</p></blockquote><p>Now moving on and getting the flag.</p><h4 id="flag-"><span class="mr-2">FLAG !!!</span><a href="#flag-" class="anchor text-muted"><i class="fas fa-hashtag"></i></a></h4><p>So to get the flag we can reverse the process on the saved string and will get it as we have all parameters of encoding and encryption. So here is what I came up with.</p><blockquote><p>WE KINDA CREATED WHOLE NEW IMPLEMENTATION OF AES AND DECRYPTION AS SOME OF THE ANDROID KEYWORDS WILL NOT WORK IN GENERAL JAVA.</p></blockquote><p><strong>SOLVE.java</strong></p><div class="language-java highlighter-rouge"><div class="code-header"> <span data-label-text="Java"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+</pre><td class="rouge-code"><pre><span class="kn">package</span> <span class="nn">com.x64mayhem</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">javax.crypto.BadPaddingException</span><span class="o">;</span><span class="kn">import</span> <span class="nn">javax.crypto.Cipher</span><span class="o">;</span><span class="kn">import</span> <span class="nn">javax.crypto.IllegalBlockSizeException</span><span class="o">;</span><span class="kn">import</span> <span class="nn">javax.crypto.NoSuchPaddingException</span><span class="o">;</span><span class="kn">import</span> <span class="nn">javax.crypto.spec.IvParameterSpec</span><span class="o">;</span><span class="kn">import</span> <span class="nn">javax.crypto.spec.SecretKeySpec</span><span class="o">;</span><span class="kn">import</span> <span class="nn">java.io.UnsupportedEncodingException</span><span class="o">;</span><span class="kn">import</span> <span class="nn">java.lang.reflect.Array</span><span class="o">;</span><span class="kn">import</span> <span class="nn">java.security.InvalidAlgorithmParameterException</span><span class="o">;</span><span class="kn">import</span> <span class="nn">java.security.InvalidKeyException</span><span class="o">;</span><span class="kn">import</span> <span class="nn">java.security.NoSuchAlgorithmException</span><span class="o">;</span><span class="kn">import</span> <span class="nn">java.util.Base64</span><span class="o">;</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Main</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="nc">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="kd">throws</span> <span class="nc">IllegalAccessException</span><span class="o">,</span> <span class="nc">UnsupportedEncodingException</span> <span class="o">{</span>
+
+       <span class="nc">String</span> <span class="no">KINDOFMAGIC</span><span class="o">[]={</span><span class="s">"UEBxWw=="</span><span class="o">,</span> <span class="s">"Sk5xVcOICw=="</span><span class="o">,</span> <span class="s">"bnRX"</span><span class="o">,</span> <span class="s">"S0BgWw=="</span><span class="o">,</span> <span class="s">"Nw=="</span><span class="o">,</span> <span class="s">"R0ZxRMOLElk="</span><span class="o">,</span> <span class="s">"TkJhWw=="</span><span class="o">,</span> <span class="s">"dHZHdcOl"</span><span class="o">,</span> <span class="s">"eWRNYQ=="</span><span class="o">,</span> <span class="s">"bHRSeMOi"</span><span class="o">,</span> <span class="s">"R05tVw=="</span><span class="o">,</span> <span class="s">"d2hScA=="</span><span class="o">,</span> <span class="s">"T0xyVMOADQ=="</span><span class="o">,</span> <span class="s">"f2pQ"</span><span class="o">,</span> <span class="s">"Q0xsVw=="</span><span class="o">,</span> <span class="s">"Nw=="</span><span class="o">};</span>
+
+       <span class="nc">String</span> <span class="n">magic</span><span class="o">=</span> <span class="s">"7E3Q5fm4lBSKXaHTnlCO52VL/iY6f+hQQ35oeFphtZIu3pf0QuOEpFB5nTeg8GTx"</span><span class="o">;</span>
+
+        <span class="c1">// TO GET THE KEY FROM KINDOFMAGIC ARRAY</span>
+       <span class="kt">int</span> <span class="n">length</span> <span class="o">=</span> <span class="nc">Array</span><span class="o">.</span><span class="na">getLength</span><span class="o">(</span><span class="no">KINDOFMAGIC</span><span class="o">);</span>
+       <span class="nc">Base64</span><span class="o">.</span><span class="na">Decoder</span> <span class="n">decode</span><span class="o">=</span><span class="nc">Base64</span><span class="o">.</span><span class="na">getDecoder</span><span class="o">();</span>
+       <span class="kt">byte</span><span class="o">[]</span> <span class="no">NEWBYTEARRAYKOM</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">byte</span><span class="o">[</span><span class="n">length</span><span class="o">];</span>
+       <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">length</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+           <span class="nc">Object</span> <span class="n">obj</span> <span class="o">=</span> <span class="nc">Array</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="no">KINDOFMAGIC</span><span class="o">,</span><span class="n">i</span><span class="o">);</span>
+           <span class="kt">byte</span><span class="o">[]</span> <span class="n">invoke3</span> <span class="o">=</span> <span class="n">decode</span><span class="o">.</span><span class="na">decode</span><span class="o">(</span><span class="n">obj</span><span class="o">.</span><span class="na">toString</span><span class="o">());</span>
+           <span class="nc">String</span> <span class="n">hmm</span> <span class="o">=</span> <span class="n">d</span><span class="o">(</span><span class="k">new</span> <span class="nc">String</span><span class="o">(</span><span class="n">invoke3</span><span class="o">,</span><span class="s">"UTF-8"</span><span class="o">),</span> <span class="n">i</span> <span class="o">^</span> <span class="mi">137</span><span class="o">);</span>
+           <span class="no">NEWBYTEARRAYKOM</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">=</span> <span class="o">((</span><span class="kt">byte</span><span class="o">)</span> <span class="n">hmm</span><span class="o">.</span><span class="na">charAt</span><span class="o">(</span><span class="mi">0</span><span class="o">));}</span>
+       <span class="c1">//SET THE KEY IN ENCRYPTION CLASS</span>
+       <span class="n">a</span><span class="o">.</span><span class="na">class</span><span class="o">.</span><span class="na">getDeclaredFields</span><span class="o">()[</span><span class="mi">0</span><span class="o">].</span><span class="na">set</span><span class="o">(</span><span class="kc">null</span><span class="o">,</span> <span class="no">NEWBYTEARRAYKOM</span><span class="o">);</span>
+       <span class="nc">Base64</span><span class="o">.</span><span class="na">Decoder</span> <span class="n">decoder</span><span class="o">=</span><span class="nc">Base64</span><span class="o">.</span><span class="na">getDecoder</span><span class="o">();</span>
+       <span class="kt">byte</span><span class="o">[]</span> <span class="n">bdecode</span><span class="o">=</span><span class="n">decoder</span><span class="o">.</span><span class="na">decode</span><span class="o">(</span><span class="n">magic</span><span class="o">);</span>
+       <span class="c1">//CALL OUR IMPLEMENTATION OF a.java TO DECRYPT THE DATA</span>
+       <span class="kt">byte</span><span class="o">[]</span> <span class="no">ANSWER</span> <span class="o">=</span><span class="n">a</span><span class="o">.</span><span class="na">a</span><span class="o">(</span><span class="n">bdecode</span><span class="o">);</span>
+
+       <span class="c1">//PRINT FLAG IN UTF-8 STRING</span>
+
+       <span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="k">new</span> <span class="nc">String</span><span class="o">(</span><span class="no">ANSWER</span><span class="o">));</span>
+    
+<span class="o">}</span>
+
+<span class="kd">public</span> <span class="kd">static</span> <span class="kt">int</span> <span class="no">INTGET</span><span class="o">=</span><span class="mi">1</span><span class="o">;</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="kt">char</span> <span class="nf">a</span><span class="o">(</span><span class="kt">char</span> <span class="n">c</span><span class="o">,</span> <span class="kt">int</span> <span class="n">i</span><span class="o">)</span> <span class="o">{</span><span class="k">return</span> <span class="o">(</span><span class="kt">char</span><span class="o">)</span> <span class="o">(</span><span class="n">c</span> <span class="o">&amp;</span> <span class="o">((</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">i</span><span class="o">)</span> <span class="o">^</span> <span class="mi">65535</span><span class="o">));}</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="kt">char</span> <span class="nf">b</span><span class="o">(</span><span class="kt">char</span> <span class="n">c</span><span class="o">,</span> <span class="kt">int</span> <span class="n">i</span><span class="o">)</span> <span class="o">{</span><span class="k">return</span> <span class="o">(</span><span class="kt">char</span><span class="o">)</span> <span class="o">(</span><span class="n">c</span> <span class="o">|</span> <span class="o">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">i</span><span class="o">));}</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="kt">char</span> <span class="nf">c</span><span class="o">(</span><span class="kt">char</span> <span class="n">c</span><span class="o">,</span> <span class="kt">int</span> <span class="n">i</span><span class="o">)</span> <span class="o">{</span> <span class="k">return</span> <span class="o">(</span><span class="kt">char</span><span class="o">)</span> <span class="o">((</span><span class="n">c</span> <span class="o">&amp;</span> <span class="o">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">i</span><span class="o">))</span> <span class="o">&gt;&gt;</span> <span class="n">i</span><span class="o">);}</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="nc">String</span> <span class="nf">d</span><span class="o">(</span><span class="nc">CharSequence</span> <span class="n">charSequence</span><span class="o">,</span> <span class="kt">int</span> <span class="n">i</span><span class="o">)</span> <span class="o">{</span>
+<span class="nc">StringBuilder</span> <span class="n">sb</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">StringBuilder</span><span class="o">();</span>
+<span class="k">if</span> <span class="o">(</span><span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span><span class="k">return</span> <span class="n">sb</span><span class="o">.</span><span class="na">toString</span><span class="o">();}</span>
+<span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i2</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i2</span> <span class="o">&lt;</span> <span class="n">charSequence</span><span class="o">.</span><span class="na">length</span><span class="o">();</span> <span class="n">i2</span><span class="o">++)</span> <span class="o">{</span>
+    <span class="kt">char</span> <span class="n">charAt</span> <span class="o">=</span> <span class="n">charSequence</span><span class="o">.</span><span class="na">charAt</span><span class="o">(</span><span class="n">i2</span><span class="o">);</span>
+    <span class="kt">char</span> <span class="n">c</span> <span class="o">=</span> <span class="o">(</span><span class="kt">char</span><span class="o">)</span> <span class="o">(</span><span class="n">i</span> <span class="o">&gt;&gt;</span> <span class="o">(</span><span class="n">i2</span> <span class="o">%</span> <span class="mi">4</span><span class="o">));</span>
+    <span class="kt">int</span> <span class="n">i3</span> <span class="o">=</span> <span class="n">i2</span> <span class="o">%</span> <span class="mi">3</span><span class="o">;</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">i3</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i4</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i4</span> <span class="o">&lt;</span> <span class="mi">8</span><span class="o">;</span> <span class="n">i4</span> <span class="o">+=</span> <span class="mi">2</span><span class="o">)</span> <span class="o">{</span>
+            <span class="kt">char</span> <span class="n">c2</span> <span class="o">=</span> <span class="o">(</span><span class="kt">char</span><span class="o">)</span> <span class="o">(</span><span class="n">c</span><span class="o">(</span><span class="n">charAt</span><span class="o">,</span> <span class="n">i4</span><span class="o">)</span> <span class="o">^</span> <span class="n">c</span><span class="o">(</span><span class="n">c</span><span class="o">,</span> <span class="n">i4</span><span class="o">));</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">c2</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">charAt</span> <span class="o">=</span> <span class="n">a</span><span class="o">(</span><span class="n">charAt</span><span class="o">,</span> <span class="n">i4</span><span class="o">);</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">c2</span> <span class="o">==</span> <span class="mi">1</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">charAt</span> <span class="o">=</span> <span class="n">b</span><span class="o">(</span><span class="n">charAt</span><span class="o">,</span> <span class="n">i4</span><span class="o">);}}</span>
+    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">i3</span> <span class="o">==</span> <span class="mi">1</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i5</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span> <span class="n">i5</span> <span class="o">&lt;</span> <span class="mi">8</span><span class="o">;</span> <span class="n">i5</span> <span class="o">+=</span> <span class="mi">2</span><span class="o">)</span> <span class="o">{</span>
+            <span class="kt">char</span> <span class="n">c3</span> <span class="o">=</span> <span class="o">(</span><span class="kt">char</span><span class="o">)</span> <span class="o">(</span><span class="n">c</span><span class="o">(</span><span class="n">charAt</span><span class="o">,</span> <span class="n">i5</span><span class="o">)</span> <span class="o">^</span> <span class="n">c</span><span class="o">(</span><span class="n">c</span><span class="o">,</span> <span class="n">i5</span><span class="o">));</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">c3</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">charAt</span> <span class="o">=</span> <span class="n">a</span><span class="o">(</span><span class="n">charAt</span><span class="o">,</span> <span class="n">i5</span><span class="o">);</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">c3</span> <span class="o">==</span> <span class="mi">1</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">charAt</span> <span class="o">=</span> <span class="n">b</span><span class="o">(</span><span class="n">charAt</span><span class="o">,</span> <span class="n">i5</span><span class="o">);}}</span>
+    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">i3</span> <span class="o">==</span> <span class="mi">2</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i6</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i6</span> <span class="o">&lt;</span> <span class="mi">8</span><span class="o">;</span> <span class="n">i6</span><span class="o">++)</span> <span class="o">{</span>
+            <span class="kt">char</span> <span class="n">c4</span> <span class="o">=</span> <span class="o">(</span><span class="kt">char</span><span class="o">)</span> <span class="o">(</span><span class="n">c</span><span class="o">(</span><span class="n">charAt</span><span class="o">,</span> <span class="n">i6</span><span class="o">)</span> <span class="o">^</span> <span class="n">c</span><span class="o">(</span><span class="n">c</span><span class="o">,</span> <span class="n">i6</span><span class="o">));</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">c4</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">charAt</span> <span class="o">=</span> <span class="n">a</span><span class="o">(</span><span class="n">charAt</span><span class="o">,</span> <span class="n">i6</span><span class="o">);</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">c4</span> <span class="o">==</span> <span class="mi">1</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">charAt</span> <span class="o">=</span> <span class="n">b</span><span class="o">(</span><span class="n">charAt</span><span class="o">,</span> <span class="n">i6</span><span class="o">);</span>
+            <span class="o">}}}</span>
+    <span class="n">sb</span><span class="o">.</span><span class="na">append</span><span class="o">((</span><span class="kt">char</span><span class="o">)</span> <span class="o">(</span><span class="n">charAt</span> <span class="o">^</span> <span class="no">INTGET</span><span class="o">));}</span>
+<span class="k">return</span> <span class="n">sb</span><span class="o">.</span><span class="na">toString</span><span class="o">();}}</span>
+</pre></table></code></div></div><p><strong>OUR <code class="language-plaintext highlighter-rouge">a.java</code></strong></p><div class="language-java highlighter-rouge"><div class="code-header"> <span data-label-text="Java"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+</pre><td class="rouge-code"><pre><span class="kn">package</span> <span class="nn">com.x64mayhem</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">javax.crypto.BadPaddingException</span><span class="o">;</span><span class="kn">import</span> <span class="nn">javax.crypto.Cipher</span><span class="o">;</span><span class="kn">import</span> <span class="nn">javax.crypto.IllegalBlockSizeException</span><span class="o">;</span><span class="kn">import</span> <span class="nn">javax.crypto.NoSuchPaddingException</span><span class="o">;</span><span class="kn">import</span> <span class="nn">javax.crypto.spec.IvParameterSpec</span><span class="o">;</span><span class="kn">import</span> <span class="nn">javax.crypto.spec.SecretKeySpec</span><span class="o">;</span><span class="kn">import</span> <span class="nn">java.security.InvalidAlgorithmParameterException</span><span class="o">;</span><span class="kn">import</span> <span class="nn">java.security.InvalidKeyException</span><span class="o">;</span><span class="kn">import</span> <span class="nn">java.security.NoSuchAlgorithmException</span><span class="o">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">a</span> <span class="o">{</span>
+
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">byte</span><span class="o">[]</span> <span class="n">f821a</span><span class="o">;</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">byte</span><span class="o">[]</span> <span class="nf">a</span><span class="o">(</span><span class="kt">byte</span><span class="o">[]</span> <span class="n">bArr</span><span class="o">)</span> <span class="o">{</span>
+
+        <span class="c1">//DECRYPT</span>
+
+        <span class="nc">Class</span><span class="o">&lt;</span><span class="n">a</span><span class="o">&gt;</span> <span class="n">cls</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="na">class</span><span class="o">;</span>
+        <span class="k">try</span> <span class="o">{</span>
+
+            <span class="nc">Cipher</span> <span class="no">AESCBC</span> <span class="o">=</span> <span class="nc">Cipher</span><span class="o">.</span><span class="na">getInstance</span><span class="o">(</span><span class="s">"AES/CBC/PKCS5Padding"</span><span class="o">);</span>
+            <span class="nc">SecretKeySpec</span> <span class="n">keyspec</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">SecretKeySpec</span><span class="o">((</span><span class="kt">byte</span><span class="o">[])</span> <span class="n">cls</span><span class="o">.</span><span class="na">getDeclaredFields</span><span class="o">()[</span><span class="mi">0</span><span class="o">].</span><span class="na">get</span><span class="o">(</span><span class="kc">null</span><span class="o">),</span> <span class="s">"AES"</span><span class="o">);</span>
+            <span class="nc">IvParameterSpec</span> <span class="no">IVSPEC</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">IvParameterSpec</span><span class="o">((</span><span class="kt">byte</span><span class="o">[])</span> <span class="n">cls</span><span class="o">.</span><span class="na">getDeclaredFields</span><span class="o">()[</span><span class="mi">0</span><span class="o">].</span><span class="na">get</span><span class="o">(</span><span class="kc">null</span><span class="o">));</span>
+            <span class="no">AESCBC</span><span class="o">.</span><span class="na">init</span><span class="o">(</span><span class="nc">Cipher</span><span class="o">.</span><span class="na">DECRYPT_MODE</span><span class="o">,</span> <span class="n">keyspec</span><span class="o">,</span> <span class="no">IVSPEC</span><span class="o">);</span>
+            <span class="k">return</span> <span class="o">(</span><span class="kt">byte</span><span class="o">[])</span> <span class="no">AESCBC</span><span class="o">.</span><span class="na">doFinal</span><span class="o">(</span><span class="n">bArr</span><span class="o">);</span>
+
+<span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">NoSuchPaddingException</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span><span class="n">ex</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();}</span>
+<span class="k">catch</span> <span class="o">(</span><span class="nc">NoSuchAlgorithmException</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span><span class="n">ex</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();}</span>
+<span class="k">catch</span> <span class="o">(</span><span class="nc">InvalidAlgorithmParameterException</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span><span class="n">ex</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();}</span>
+<span class="k">catch</span> <span class="o">(</span><span class="nc">InvalidKeyException</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span><span class="n">ex</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();}</span>
+<span class="k">catch</span> <span class="o">(</span><span class="nc">BadPaddingException</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span><span class="n">ex</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();}</span>
+<span class="k">catch</span> <span class="o">(</span><span class="nc">IllegalBlockSizeException</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span><span class="n">ex</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();}</span>
+<span class="k">catch</span> <span class="o">(</span><span class="nc">IllegalAccessException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span><span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();}</span>
+
+<span class="k">return</span> <span class="kc">null</span><span class="o">;}}</span>
+
+
+</pre></table></code></div></div><p>Executing the above code will give us our love of CTFs: <code class="language-plaintext highlighter-rouge">SCTF{53CUr17Y_7Hr0U6H_085CUr17Y_15_N07_3N0U6H}</code></p><p><img data-src="/blog/assets/images/sctf/2.png" alt="" data-proofer-ignore></p><p><img data-src="/blog/assets/images/sctf/final.jpg" alt="" data-proofer-ignore></p><p>PHEW! That’s all for this one.. see ya all in the next one.</p><p>And you know the drill right? Till then… Stay Caffinenated Enough!</p><hr /></div><div class="post-tail-wrapper text-muted"><div class="post-meta mb-3"> <i class="far fa-folder-open fa-fw mr-1"></i> <a href='/blog/categories/ctf/'>CTF</a>, <a href='/blog/categories/android/'>Android</a></div><div class="post-tags"> <i class="fa fa-tags fa-fw mr-1"></i> <a href="/blog/tags/samsung-ctf/" class="post-tag no-text-decoration" >samsung ctf</a> <a href="/blog/tags/android/" class="post-tag no-text-decoration" >android</a> <a href="/blog/tags/reverse-engineering/" class="post-tag no-text-decoration" >reverse engineering</a></div><div class="post-tail-bottom d-flex justify-content-between align-items-center mt-3 pt-5 pb-2"><div class="license-wrapper"> This post is licensed under <a href="https://creativecommons.org/licenses/by/4.0/"> CC BY 4.0 </a> by the author.</div><div class="share-wrapper"> <span class="share-label text-muted mr-1">Share</span> <span class="share-icons"> <a href="https://twitter.com/intent/tweet?text=Samsung+CTF+App+Reverse+Eng.+Writeup+-+Saket%27s+Blog&url=%2Fblog%2Fposts%2Fsstf-vault-wtireup%2F" data-toggle="tooltip" data-placement="top" title="Twitter" target="_blank" rel="noopener" aria-label="Twitter"> <i class="fa-fw fab fa-twitter"></i> </a> <a href="https://www.facebook.com/sharer/sharer.php?title=Samsung+CTF+App+Reverse+Eng.+Writeup+-+Saket%27s+Blog&u=%2Fblog%2Fposts%2Fsstf-vault-wtireup%2F" data-toggle="tooltip" data-placement="top" title="Facebook" target="_blank" rel="noopener" aria-label="Facebook"> <i class="fa-fw fab fa-facebook-square"></i> </a> <a href="https://t.me/share/url?url=%2Fblog%2Fposts%2Fsstf-vault-wtireup%2F&text=Samsung+CTF+App+Reverse+Eng.+Writeup+-+Saket%27s+Blog" data-toggle="tooltip" data-placement="top" title="Telegram" target="_blank" rel="noopener" aria-label="Telegram"> <i class="fa-fw fab fa-telegram"></i> </a> <a href="https://www.linkedin.com/sharing/share-offsite/?url=%2Fblog%2Fposts%2Fsstf-vault-wtireup%2F" data-toggle="tooltip" data-placement="top" title="Linkedin" target="_blank" rel="noopener" aria-label="Linkedin"> <i class="fa-fw fab fa-linkedin"></i> </a> <i id="copy-link" class="fa-fw fas fa-link small" data-toggle="tooltip" data-placement="top" title="Copy link" data-title-succeed="Link copied successfully!"> </i> </span></div></div></div></div></div><div id="panel-wrapper" class="col-xl-3 pl-2 text-muted"><div class="access"><div id="access-tags"><div class="panel-heading">Trending Tags</div><div class="d-flex flex-wrap mt-3 mb-1 mr-3"> <a class="post-tag" href="/blog/tags/ctf-writeup/">ctf writeup</a> <a class="post-tag" href="/blog/tags/android/">android</a> <a class="post-tag" href="/blog/tags/ctf/">ctf</a> <a class="post-tag" href="/blog/tags/encryption/">encryption</a> <a class="post-tag" href="/blog/tags/malware-analysis/">malware analysis</a> <a class="post-tag" href="/blog/tags/privacy/">privacy</a> <a class="post-tag" href="/blog/tags/reverse-engineering/">reverse engineering</a> <a class="post-tag" href="/blog/tags/assembly/">Assembly</a> <a class="post-tag" href="/blog/tags/brainfuck/">brainfuck</a> <a class="post-tag" href="/blog/tags/crunch/">crunch</a></div></div></div><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@1.0.1/dist/bootstrap-toc.min.js"></script><div id="toc-wrapper" class="pl-0 pr-4 mb-5"><div class="panel-heading pl-3 pt-2 mb-2">Contents</div><nav id="toc" data-toggle="toc"></nav></div></div></div><div class="row"><div id="tail-wrapper" class="col-12 col-lg-11 col-xl-9 pl-3 pr-3 pr-xl-4"><div id="related-posts" class="mt-5 mb-2 mb-sm-4"><h3 class="pt-2 mt-1 mb-4 ml-1" data-toc-skip>Further Reading</h3><div class="card-deck mb-4"><div class="card"> <a href="/blog/posts/Live-Movement-Tracing-in-Android-using-Polygraph-Lines/"><div class="card-body"> <em class="small" data-ts="1563172932" data-df="ll" > Jul 15, 2019 </em><h3 class="pt-0 mt-1 mb-3" data-toc-skip>Movement Tracing in Android</h3><div class="text-muted small"><p> Android already have accurate Geo location capabilities by using multiple sources like Cellular Networks, G.P.S. and nearby Wi-Fi connections. And that’s handful of sources to extract information f...</p></div></div></a></div><div class="card"> <a href="/blog/posts/Effortless-Feature-Extraction/"><div class="card-body"> <em class="small" data-ts="1575441732" data-df="ll" > Dec 4, 2019 </em><h3 class="pt-0 mt-1 mb-3" data-toc-skip>Effortless Feature Extraction</h3><div class="text-muted small"><p> Streamline Permission-Based Feature Extraction for android data-set with one Python Script. Malware detection and analysis has been the hot topic in security for a long time, overtime the malwar...</p></div></div></a></div><div class="card"> <a href="/blog/posts/Single-Breakpoint/"><div class="card-body"> <em class="small" data-ts="1637476932" data-df="ll" > Nov 21, 2021 </em><h3 class="pt-0 mt-1 mb-3" data-toc-skip>Unpac UPX malware with SINGLE breakpoint</h3><div class="text-muted small"><p> Dynamically unpacking UPX payload from memory. What is UPX?: Ultimate Packer for eXecutables (UPX) is a free and opensource executable packer. This usually is short for “runtime packers” whi...</p></div></div></a></div></div></div><div class="post-navigation d-flex justify-content-between"> <a href="/blog/posts/ascwg-impossible-dream/" class="btn btn-outline-primary" prompt="Older"><p>ASCWG CTF Impossible Dream Writeup</p></a> <a href="/blog/posts/code-brainfuck/" class="btn btn-outline-primary" prompt="Newer"><p>How to (code in) BrainF*ck?</p></a></div></div></div><footer class="row pl-3 pr-3"><div class="col-12 d-flex justify-content-between align-items-center text-muted pl-0 pr-0"><div class="footer-left"><p class="mb-0"><p xmlns:cc="http://creativecommons.org/ns#" xmlns:dct="http://purl.org/dc/terms/"><a property="dct:title" rel="cc:attributionURL" href="https://saket-upadhyay.github.io/blog">Saket's Blog</a> by <a rel="cc:attributionURL dct:creator" property="cc:attributionName" href="https://saket-upadhyay.github.io">Saket Upadhyay</a> is licensed under <a href="http://creativecommons.org/licenses/by-sa/4.0/?ref=chooser-v1" target="_blank" rel="license noopener noreferrer" style="display:inline-block;">CC BY-SA 4.0<img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/cc.svg?ref=chooser-v1"><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/by.svg?ref=chooser-v1"><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/sa.svg"></a></p></p></div><div class="footer-right"><p class="mb-0"> Powered by Jekyll.</p></div></div></footer></div><div id="search-result-wrapper" class="d-flex justify-content-center unloaded"><div class="col-12 col-sm-11 post-content"><div id="search-hints"><div id="access-tags"><div class="panel-heading">Trending Tags</div><div class="d-flex flex-wrap mt-3 mb-1 mr-3"> <a class="post-tag" href="/blog/tags/ctf-writeup/">ctf writeup</a> <a class="post-tag" href="/blog/tags/android/">android</a> <a class="post-tag" href="/blog/tags/ctf/">ctf</a> <a class="post-tag" href="/blog/tags/encryption/">encryption</a> <a class="post-tag" href="/blog/tags/malware-analysis/">malware analysis</a> <a class="post-tag" href="/blog/tags/privacy/">privacy</a> <a class="post-tag" href="/blog/tags/reverse-engineering/">reverse engineering</a> <a class="post-tag" href="/blog/tags/assembly/">Assembly</a> <a class="post-tag" href="/blog/tags/brainfuck/">brainfuck</a> <a class="post-tag" href="/blog/tags/crunch/">crunch</a></div></div></div><div id="search-results" class="d-flex flex-wrap justify-content-center text-muted mt-3"></div></div></div></div><div id="mask"></div><a id="back-to-top" href="#" aria-label="back-to-top" class="btn btn-lg btn-box-shadow" role="button"> <i class="fas fa-angle-up"></i> </a><div id="notification" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-animation="true" data-autohide="false"><div class="toast-header"> <button type="button" class="ml-2 ml-auto close" data-dismiss="toast" aria-label="Close"> <span aria-hidden="true">&times;</span> </button></div><div class="toast-body text-center pt-0"><p class="pl-2 pr-2 mb-3">A new version of content is available.</p><button type="button" class="btn btn-primary" aria-label="Update"> Update </button></div></div><script src="https://cdn.jsdelivr.net/npm/simple-jekyll-search@1.10.0/dest/simple-jekyll-search.min.js"></script> <script> SimpleJekyllSearch({ searchInput: document.getElementById('search-input'), resultsContainer: document.getElementById('search-results'), json: '/blog/assets/js/data/search.json', searchResultTemplate: '<div class="pl-1 pr-1 pl-sm-2 pr-sm-2 pl-lg-4 pr-lg-4 pl-xl-0 pr-xl-0"> <a href="{url}">{title}</a><div class="post-meta d-flex flex-column flex-sm-row text-muted mt-1 mb-1"> {categories} {tags}</div><p>{snippet}</p></div>', noResultsText: '<p class="mt-5">Oops! No results found.</p>', templateMiddleware: function(prop, value, template) { if (prop === 'categories') { if (value === '') { return `${value}`; } else { return `<div class="mr-sm-4"><i class="far fa-folder fa-fw"></i>${value}</div>`; } } if (prop === 'tags') { if (value === '') { return `${value}`; } else { return `<div><i class="fa fa-tag fa-fw"></i>${value}</div>`; } } } }); </script> <script src="https://cdn.jsdelivr.net/combine/npm/magnific-popup@1/dist/jquery.magnific-popup.min.js,npm/lozad/dist/lozad.min.js,npm/clipboard@2/dist/clipboard.min.js"></script> <script src="https://cdn.jsdelivr.net/combine/npm/dayjs@1/dayjs.min.js,npm/dayjs@1/locale/en.min.js,npm/dayjs@1/plugin/relativeTime.min.js,npm/dayjs@1/plugin/localizedFormat.min.js"></script> <script defer src="/blog/assets/js/dist/post.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.bundle.min.js"></script> <script defer src="/blog/app.js"></script>
