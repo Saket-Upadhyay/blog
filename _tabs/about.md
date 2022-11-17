@@ -26,7 +26,7 @@ I completed my Higher Secondary School (12th Grade) from <a class="link" href="h
 I did my Bachelor of Technology in Computer Science and Engineering (CSE) with a specialization in Cybersecurity and Digital Forensics from <a class="link" href="https://vitbhopal.ac.in/">Vellore Institute of Technology (VIT) University</a>, India [Bhopal Campus]. Here I got familiarized with academic and industrial research by my amazing profs. 
 I completed my Undergrad in 2022 and started my Graduate school in the same year.
 
-I got accepted into the Computer Science Ph.D. program at the <a class="link" href="https://www.virginia.edu/">University of Virginia</a>, Charlottesville, VA, US; in February 2022, and will be starting my 1st year as a research student in August 2022. 
+I got accepted into the Computer Science Ph.D. program at the <a class="link" href="https://www.virginia.edu/">University of Virginia</a>, Charlottesville, VA, US; in February 2022 for subsequent fall semester (Aug. 2022) intake.
 
 
 My area of curiosity is cybersecurity, specifically, low-level security, malware reverse engineering, and analysis, hardware security, and nature-inspired approach.
@@ -43,7 +43,7 @@ Some of the topics that I want to explore more profoundly are (not limited to)-
 If you are also working with/interested in these topics, please feel free to initiate a discussion with me!
 Also, if you have any project/research around the aforementioned topics and you think I will be of any help, hit me up!
 
-You can reachout to me at : <firstname> at vitginia dot edu
+You can reachout to me at : `<my_firstname> AT virginia DOT edu`
 
 <p style="color: red;"><strong>!!! IMPORTANT !!!</strong>
 <br>
